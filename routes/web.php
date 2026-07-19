@@ -44,6 +44,10 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::post('/orders/{order}/send-wa', [WhatsAppController::class, 'apiSendOrderNotification']);
     Route::post('/orders/{order}/send-reminder', [WhatsAppController::class, 'apiSendPaymentReminder']);
 
+    // Settings API
+    Route::get('/settings', [\App\Http\Controllers\Api\SettingsApiController::class, 'index']);
+    Route::put('/settings', [\App\Http\Controllers\Api\SettingsApiController::class, 'update']);
+
     // Services API
     Route::get('/services', [ServiceApiController::class, 'index']);
     Route::post('/services', [ServiceApiController::class, 'store']);

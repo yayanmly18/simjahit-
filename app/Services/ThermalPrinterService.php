@@ -37,7 +37,7 @@ class ThermalPrinterService
         $lines = [];
         
         // Header
-        $lines[] = $this->centerText('SIMJAHIT');
+        $lines[] = $this->centerText('A.Y.A Tailor');
         $lines[] = $this->centerText('Solusi Jahit Terpercaya');
         $lines[] = $this->centerText('Telp: ' . env('WA_PHONE_NUMBER', '08123456789'));
         $lines[] = str_repeat('-', $this->printerWidth);

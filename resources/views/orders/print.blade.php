@@ -110,7 +110,7 @@
     </div>
 
     <div class="header">
-        <h1>SIMJAHIT</h1>
+        <h1>A.Y.A Tailor</h1>
         <p>Solusi Jahit Terpercaya</p>
         <p>Telp: {{ env('WA_PHONE_NUMBER', '08123456789') }}</p>
     </div>
@@ -196,7 +196,7 @@
             setTimeout(function () {
                 window.print();
             }, 500);
-        };
+    };
     </script>
 </body>
 

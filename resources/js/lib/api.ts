@@ -175,4 +175,13 @@ export const api = {
 
     sendPaymentReminder: (orderId: string) =>
         fetchApi<any>(`/orders/${orderId}/send-reminder`, { method: 'POST' }),
+
+    // Settings
+    getSettings: () => fetchApi<any>('/settings'),
+
+    updateSettings: (data: any) =>
+        fetchApi<any>('/settings', {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
 };

@@ -211,7 +211,7 @@ function WhatsAppModal({ order, sending, onSend, onClose }: {
                         <br />
                         <p>Pesanan Anda dengan nomor <strong>{order.invoice}</strong> telah selesai dikerjakan dan siap diambil.</p>
                         <br />
-                        <p>Terima kasih telah menggunakan jasa SIMJAHIT.</p>
+                        <p>Terima kasih telah menggunakan jasa A.Y.A Tailor.</p>
                     </div>
                     <p className="text-xs text-gray-400 mb-5">
                         Pesan akan dikirim ke:{" "}
@@ -296,7 +296,7 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                                 <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center mx-auto mb-1">
                                     <Scissors size={12} className="text-white" />
                                 </div>
-                                <p className="font-bold text-xs tracking-wider text-gray-900">SIMJAHIT</p>
+                                <p className="font-bold text-xs tracking-wider text-gray-900">A.Y.A Tailor</p>
                                 <p className="text-gray-500 text-[9px]">Jasa Jahit & Permak Pakaian</p>
                                 <p className="text-gray-400 text-[9px]">Jl. Sudirman No. 45, Bandung</p>
                                 <p className="text-gray-400 text-[9px]">Telp: 022-1234567</p>
@@ -644,7 +644,7 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                     <div className="w-20 h-20 bg-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
                         <Scissors size={36} className="text-white" />
                     </div>
-                    <h1 className="text-4xl font-bold mb-3 tracking-tight">SIMJAHIT</h1>
+                    <h1 className="text-4xl font-bold mb-3 tracking-tight">A.Y.A Tailor</h1>
                     <p className="text-blue-200 text-lg mb-8">Sistem Informasi Manajemen</p>
                     <p className="text-blue-200/70 text-sm leading-relaxed max-w-xs mx-auto">
                         Kelola jasa jahit dan permak pakaian Anda dengan mudah, cepat, dan profesional.
@@ -665,7 +665,7 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                         </div>
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900 mb-1">Selamat Datang</h2>
-                    <p className="text-gray-500 text-sm mb-8">Masuk ke akun SIMJAHIT Anda</p>
+                    <p className="text-gray-500 text-sm mb-8">Masuk ke akun A.Y.A Tailor Anda</p>
 
                     <form
                         onSubmit={e => { e.preventDefault(); onLogin({ username, password }); }}
@@ -697,7 +697,7 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                         </button>
                     </form>
                     <p className="text-center text-xs text-gray-400 mt-8">
-                        © 2026 SIMJAHIT · Versi 1.0
+                        © 2026 A.Y.A Tailor · Versi 1.0
                     </p>
                 </div>
             </div>
@@ -707,15 +707,16 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
 
 // ─── Page: Dashboard ─────────────────────────────────────────────────────────
 
-function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onEditOrder, onDeleteOrder }: {
+function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onLoadDetail }: {
     orders: Order[];
     setPage: (p: Page) => void;
     setSelectedOrder: (o: Order) => void;
     setShowWhatsApp: (v: boolean) => void;
-    onEditOrder: (o: Order) => void;
-    onDeleteOrder: (o: Order) => void;
+    onLoadDetail?: (id: string) => void;
 }) {
-    const today = new Date().toISOString().slice(0, 10);
+    // Use local date format to match backend
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const monthPrefix = today.slice(0, 7);
     const todayOrders = orders.filter(o => o.createdAt === today);
     const inProgress = orders.filter(o => ["Diproses", "Finishing", "Menunggu"].includes(o.status));
@@ -733,18 +734,37 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onE
         { icon: TrendingUp, label: "Pendapatan Bulan Ini", value: fmt(monthlyRevenue), sub: new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" }), color: "bg-purple-500" },
     ];
 
-    // Build 6-month revenue/expense trend from orders
-    const monthLabels: string[] = [];
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        monthLabels.push(d.toLocaleDateString("id-ID", { month: "short" }));
-    }
-    const REVENUE_DATA = monthLabels.map((m, idx) => {
-        const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1);
-        const prefix = d.toISOString().slice(0, 7);
-        const pendapatan = orders.filter(o => o.createdAt.startsWith(prefix)).reduce((s, o) => s + (o.price - o.discount), 0);
-        return { month: m, pendapatan, pengeluaran: 0 };
+    // Build weekly revenue data from completed orders for current month
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Define weeks for current month
+    const getWeekLabel = (weekNum: number) => {
+        const startDay = (weekNum - 1) * 7 + 1;
+        const endDay = Math.min(weekNum * 7, new Date(currentYear, currentMonth + 1, 0).getDate());
+        return `Minggu ${weekNum} (${startDay}-${endDay})`;
+    };
+
+    const weekLabels = ["Minggu 1 (1-7)", "Minggu 2 (8-14)", "Minggu 3 (15-21)", "Minggu 4 (22-akhir)"];
+
+    const REVENUE_DATA = weekLabels.map((label, weekNum) => {
+        const startDay = weekNum * 7 - 6; // 1, 8, 15, 22
+        const endDay = weekNum === 4 ? new Date(currentYear, currentMonth + 1, 0).getDate() : weekNum * 7; // last day of month or 7, 14, 21
+
+        // Filter completed orders in this week
+        const pendapatan = orders
+            .filter(o => {
+                if (o.status !== "Selesai" || !o.createdAt) return false;
+                // Parse date string directly (format: Y-m-d)
+                const [year, month, day] = o.createdAt.split('-').map(Number);
+                return year === currentYear &&
+                    month - 1 === currentMonth &&
+                    day >= startDay &&
+                    day <= endDay;
+            })
+            .reduce((s, o) => s + (o.price - o.discount), 0);
+
+        return { month: label, pendapatan, pengeluaran: 0 };
     });
 
     return (
@@ -775,7 +795,7 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onE
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <h3 className="font-bold text-gray-900">Grafik Pendapatan</h3>
-                            <p className="text-xs text-gray-400 mt-0.5">Pendapatan 6 bulan terakhir</p>
+                            <p className="text-xs text-gray-400 mt-0.5">Pendapatan bulan ini per minggu (pesanan selesai)</p>
                         </div>
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />Pendapatan</span>
@@ -848,35 +868,21 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onE
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {orders.slice(0, 6).map(o => (
-                                <tr key={o.id} className="hover:bg-gray-50/60 transition-colors">
+                                <tr key={o.id} className="hover:bg-gray-50/60 transition-colors cursor-pointer" onClick={() => { setSelectedOrder(o); onLoadDetail?.(o.id); setPage("order-detail"); }}>
                                     <td className="px-5 py-3.5 text-sm font-bold text-blue-600">{o.invoice}</td>
                                     <td className="px-5 py-3.5 text-sm font-medium text-gray-900">{o.customer}</td>
                                     <td className="px-5 py-3.5 text-sm text-gray-600">{o.clothingType}</td>
                                     <td className="px-5 py-3.5 text-sm text-gray-600">{o.service}</td>
                                     <td className="px-5 py-3.5"><StatusBadge status={o.status} /></td>
                                     <td className="px-5 py-3.5 text-sm text-gray-600">{o.deadline}</td>
-                                    <td className="px-5 py-3.5">
+                                    <td className="px-5 py-3.5" onClick={e => e.stopPropagation()}>
                                         <div className="flex items-center gap-1">
                                             <button
-                                                onClick={() => { setSelectedOrder(o); setPage("order-detail"); }}
+                                                onClick={() => { setSelectedOrder(o); onLoadDetail?.(o.id); setPage("order-detail"); }}
                                                 className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                 title="Lihat Detail"
                                             >
                                                 <Eye size={15} />
-                                            </button>
-                                            <button
-                                                onClick={() => onEditOrder(o)}
-                                                className="p-1.5 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                                                title="Edit"
-                                            >
-                                                <Edit2 size={14} />
-                                            </button>
-                                            <button
-                                                onClick={() => onDeleteOrder(o)}
-                                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                title="Hapus"
-                                            >
-                                                <Trash2 size={14} />
                                             </button>
                                             {o.status === "Selesai" && (
                                                 <button
@@ -1893,6 +1899,7 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                             </div>
                         </>
                     )}
+                    </div>
                 </div>
             </div>
 
@@ -1906,25 +1913,79 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                     Cetak
                 </button>
             </div>
-        </div>
+        </div >
     );
 }
 
 // ─── Page: Settings ───────────────────────────────────────────────────────────
 
 function SettingsPage() {
-    const [storeName, setStoreName] = useState("SIMJAHIT");
+    const [storeName, setStoreName] = useState("A.Y.A Tailor");
     const [address, setAddress] = useState("Jl. Sudirman No. 45, Bandung");
     const [phone, setPhone] = useState("022-1234567");
     const [wa, setWa] = useState("081234567890");
     const [notif1, setNotif1] = useState(true);
     const [notif2, setNotif2] = useState(true);
     const [notif3, setNotif3] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [loading, setLoading] = useState(true);
 
-    const save = () => {
-        localStorage.setItem("simjahit_settings", JSON.stringify({ storeName, address, phone, wa, notif1, notif2, notif3 }));
-        alert("Pengaturan disimpan.");
+    // Load settings from API on mount
+    useEffect(() => {
+        const loadSettings = async () => {
+            try {
+                const data = await api.getSettings();
+                if (data) {
+                    setStoreName(data.storeName || "A.Y.A Tailor");
+                    setAddress(data.address || "Jl. Sudirman No. 45, Bandung");
+                    setPhone(data.phone || "022-1234567");
+                    setWa(data.whatsapp || "081234567890");
+                    if (data.notifications) {
+                        setNotif1(data.notifications.order_complete ?? true);
+                        setNotif2(data.notifications.deadline_reminder ?? true);
+                        setNotif3(data.notifications.stock_alert ?? false);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load settings:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadSettings();
+    }, []);
+
+    const save = async () => {
+        setSaving(true);
+        try {
+            await api.updateSettings({
+                storeName,
+                address,
+                phone,
+                whatsapp: wa,
+                notifications: {
+                    order_complete: notif1,
+                    deadline_reminder: notif2,
+                    stock_alert: notif3,
+                }
+            });
+            alert("Pengaturan berhasil disimpan ke database.");
+        } catch (err: any) {
+            alert("Gagal menyimpan: " + (err?.message || "terjadi kesalahan"));
+        } finally {
+            setSaving(false);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="max-w-2xl mx-auto">
+                <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
+                    <p className="text-sm text-gray-500">Memuat pengaturan...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-2xl mx-auto space-y-4">
@@ -1937,7 +1998,9 @@ function SettingsPage() {
                         <InputField label="Nomor Telepon"><input className={inputClass} value={phone} onChange={e => setPhone(e.target.value)} /></InputField>
                         <InputField label="Nomor WhatsApp"><input className={inputClass} value={wa} onChange={e => setWa(e.target.value)} /></InputField>
                     </div>
-                    <button onClick={save} className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">Simpan Perubahan</button>
+                    <button onClick={save} disabled={saving} className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60">
+                        {saving ? "Menyimpan..." : "Simpan Perubahan"}
+                    </button>
                 </div>
             </div>
 
@@ -2206,7 +2269,7 @@ export default function App() {
                     </div>
                     {sidebarOpen && (
                         <div className="min-w-0">
-                            <p className="text-white font-bold text-sm leading-tight">SIMJAHIT</p>
+                            <p className="text-white font-bold text-sm leading-tight">A.Y.A Tailor</p>
                             <p className="text-blue-200 text-[10px]">Manajemen Jahit</p>
                         </div>
                     )}
@@ -2277,7 +2340,7 @@ export default function App() {
                             </div>
                             <div className="text-sm">
                                 <p className="font-semibold text-gray-900 leading-tight">Admin</p>
-                                <p className="text-xs text-gray-400">SIMJAHIT</p>
+                                <p className="text-xs text-gray-400">A.Y.A Tailor</p>
                             </div>
                         </div>
                     </div>
@@ -2292,8 +2355,7 @@ export default function App() {
                             setPage={setPage}
                             setSelectedOrder={setSelectedOrder}
                             setShowWhatsApp={setShowWhatsApp}
-                            onEditOrder={(o) => { setSelectedOrder(o); setPage("new-transaction"); }}
-                            onDeleteOrder={deleteOrder}
+                            onLoadDetail={loadOrderDetail}
                         />
                     )}
                     {page === "customers" && (

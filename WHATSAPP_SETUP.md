@@ -1,6 +1,6 @@
 # Panduan Konfigurasi WhatsApp
 
-Panduan ini menjelaskan cara mengaktifkan fitur notifikasi WhatsApp untuk SIMJAHIT menggunakan **WhatsApp Cloud API** dari Meta.
+Panduan ini menjelaskan cara mengaktifkan fitur notifikasi WhatsApp untuk A.Y.A Tailor menggunakan **WhatsApp Cloud API** dari Meta.
 
 ## 📋 Prasyarat
 
@@ -14,7 +14,7 @@ Panduan ini menjelaskan cara mengaktifkan fitur notifikasi WhatsApp untuk SIMJAH
 
 1. Kunjungi [Facebook Developer Portal](https://developers.facebook.com/apps)
 2. Klik **"Create App"** → Pilih **"Business"**
-3. Isi nama aplikasi (misal: SIMJAHIT WhatsApp)
+3. Isi nama aplikasi (misal: A.Y.A Tailor WhatsApp)
 4. Tambahkan **WhatsApp** product ke aplikasi
 
 ### 2. Dapatkan Kredensial
@@ -61,7 +61,7 @@ WA_BUSINESS_ACCOUNT_ID=987654321098765
 
 Setelah konfigurasi, test dengan cara:
 
-1. Buka aplikasi SIMJAHIT
+1. Buka aplikasi A.Y.A Tailor
 2. Buat pesanan baru
 3. Klik tombol **WhatsApp** di halaman detail pesanan
 4. Jika berhasil, akan muncul notifikasi "WhatsApp berhasil dikirim!"
