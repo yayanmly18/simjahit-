@@ -11,6 +11,7 @@ import {
     AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
+import { QRCodeSVG } from "qrcode.react";
 import { api, loginApi, logoutApi } from "../lib/api";
 
 type User = { id: string | number; name: string; email: string };
@@ -32,6 +33,16 @@ interface Order {
     clothingType: string; service: string; status: OrderStatus;
     deadline: string; price: number; dp: number; discount: number;
     notes: string; createdAt: string;
+    items?: Array<{
+        id: string;
+        item_name: string;
+        category: string;
+        price: number;
+        quantity: number;
+        color?: string;
+        size?: string;
+        notes?: string;
+    }>;
 }
 
 interface Customer {
@@ -61,7 +72,7 @@ const STATUS_FLOW: OrderStatus[] = ["Menunggu", "Diproses", "Finishing", "Selesa
 
 // ─── Mock-free constants still needed for visuals ─────────────────────────────
 
-const QR_GRID = [1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0];
+// QR_GRID removed - using real QR code
 
 const PIE_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
 
@@ -100,6 +111,7 @@ function InputField({ label, children }: { label: string; children: any }) {
 
 const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white";
 const readonlyClass = "w-full px-4 py-2.5 border border-gray-100 rounded-xl text-sm bg-gray-50 text-gray-500";
+const searchInputClass = "w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white";
 
 // ─── Modals ───────────────────────────────────────────────────────────────────
 
@@ -231,6 +243,36 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
     const total = order.price - order.discount;
     const remaining = total - order.dp;
     const handlePrint = () => window.print();
+    const [orderItems, setOrderItems] = useState<Order["items"]>(order.items || []);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchOrderDetail = async () => {
+            try {
+                const detail = await api.getOrder(order.id);
+                setOrderItems(detail.items || []);
+            } catch (err) {
+                console.error('Failed to load order items:', err);
+                setOrderItems(order.items || []);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Always fetch fresh data to ensure we have all items
+        fetchOrderDetail();
+    }, [order.id]);
+
+    if (loading) {
+        return (
+            <Backdrop>
+                <div className="bg-white rounded-2xl shadow-2xl p-6">
+                    <p className="text-sm text-gray-500">Memuat data nota...</p>
+                </div>
+            </Backdrop>
+        );
+    }
+
     return (
         <Backdrop>
             <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -247,96 +289,144 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                     </div>
                 </div>
                 <div className="p-6 bg-gray-100">
-                    <div className="w-[240px] bg-white font-mono text-[11px] mx-auto shadow-lg rounded-sm">
-                        <div className="p-4">
-                            <div className="text-center mb-3">
-                                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                    <Scissors size={14} className="text-white" />
+                    <div className="w-[280px] bg-white font-mono text-[10px] mx-auto shadow-lg rounded-sm">
+                        <div className="p-3">
+                            {/* Header */}
+                            <div className="text-center mb-2">
+                                <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center mx-auto mb-1">
+                                    <Scissors size={12} className="text-white" />
                                 </div>
-                                <p className="font-bold text-sm tracking-widest text-gray-900">SIMJAHIT</p>
-                                <p className="text-gray-500 text-[10px] mt-0.5">Jasa Jahit & Permak Pakaian</p>
-                                <p className="text-gray-400 text-[10px]">Jl. Sudirman No. 45, Bandung</p>
-                                <p className="text-gray-400 text-[10px]">Telp: 022-1234567</p>
+                                <p className="font-bold text-xs tracking-wider text-gray-900">SIMJAHIT</p>
+                                <p className="text-gray-500 text-[9px]">Jasa Jahit & Permak Pakaian</p>
+                                <p className="text-gray-400 text-[9px]">Jl. Sudirman No. 45, Bandung</p>
+                                <p className="text-gray-400 text-[9px]">Telp: 022-1234567</p>
                             </div>
-                            <div className="border-t border-dashed border-gray-300 my-2.5" />
-                            <div className="space-y-1 mb-2">
-                                <div className="flex justify-between gap-2">
+
+                            <div className="border-t border-dashed border-gray-300 my-1.5" />
+
+                            {/* Invoice Info */}
+                            <div className="space-y-0.5 mb-1.5">
+                                <div className="flex justify-between">
                                     <span className="text-gray-500">No. Invoice</span>
-                                    <span className="font-bold text-right">{order.invoice}</span>
+                                    <span className="font-bold text-[9px]">{order.invoice}</span>
                                 </div>
-                                <div className="flex justify-between gap-2">
+                                <div className="flex justify-between">
                                     <span className="text-gray-500">Tanggal</span>
-                                    <span>{order.createdAt}</span>
+                                    <span className="text-[9px]">{order.createdAt}</span>
                                 </div>
                             </div>
-                            <div className="border-t border-dashed border-gray-300 my-2.5" />
-                            <div className="mb-2">
-                                <p className="font-bold text-gray-900 mb-1">Pelanggan:</p>
-                                <p className="text-gray-800">{order.customer}</p>
-                                <p className="text-gray-500">{order.phone}</p>
+
+                            <div className="border-t border-dashed border-gray-300 my-1.5" />
+
+                            {/* Customer Info */}
+                            <div className="mb-1.5">
+                                <p className="text-gray-900 text-[9px] font-bold mb-0.5">Pelanggan:</p>
+                                <p className="text-gray-800 text-[9px]">{order.customer}</p>
+                                <p className="text-gray-500 text-[9px]">{order.phone}</p>
                             </div>
-                            <div className="border-t border-dashed border-gray-300 my-2.5" />
-                            <div className="space-y-1 mb-2">
-                                <div className="flex justify-between gap-2">
-                                    <span className="text-gray-500">Pakaian</span>
-                                    <span className="text-right">{order.clothingType}</span>
+
+                            <div className="border-t border-dashed border-gray-300 my-1.5" />
+
+                            {/* Items */}
+                            {orderItems.length > 0 ? (
+                                <div className="mb-1.5">
+                                    <p className="text-gray-900 text-[9px] font-bold mb-1">Daftar Item:</p>
+                                    {orderItems.map((item, index) => (
+                                        <div key={item.id || index} className="mb-1.5 pb-1.5 border-b border-gray-100 last:border-0">
+                                            <div className="flex justify-between gap-1 mb-0.5">
+                                                <span className="text-gray-600 text-[9px] font-semibold">Item {index + 1}:</span>
+                                                <span className="text-gray-800 text-[9px] font-medium text-right flex-1 ml-1">{item.item_name}</span>
+                                            </div>
+                                            <div className="flex justify-between gap-1 text-[9px]">
+                                                <span className="text-gray-500 ml-3">{item.category}</span>
+                                            </div>
+                                            <div className="flex justify-between gap-1 text-[9px]">
+                                                <span className="text-gray-500 ml-3">Qty: {item.quantity} pcs</span>
+                                                <span className="text-gray-700">{fmt(item.price * item.quantity)}</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="flex justify-between gap-2">
-                                    <span className="text-gray-500">Layanan</span>
-                                    <span className="text-right">{order.service}</span>
+                            ) : (
+                                <div className="space-y-0.5 mb-1.5">
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 text-[9px]">Pakaian</span>
+                                        <span className="text-gray-800 text-[9px]">{order.clothingType}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-gray-500 text-[9px]">Layanan</span>
+                                        <span className="text-gray-800 text-[9px]">{order.service}</span>
+                                    </div>
                                 </div>
-                                <div className="flex justify-between gap-2">
-                                    <span className="text-gray-500">Deadline</span>
-                                    <span>{order.deadline}</span>
+                            )}
+
+                            <div className="border-t border-dashed border-gray-300 my-1.5" />
+
+                            {/* Order Info */}
+                            <div className="space-y-0.5 mb-1.5">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500 text-[9px]">Deadline</span>
+                                    <span className="text-[9px]">{order.deadline}</span>
                                 </div>
-                                <div className="flex justify-between gap-2">
-                                    <span className="text-gray-500">Status</span>
-                                    <span className="font-bold">{order.status}</span>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500 text-[9px]">Status</span>
+                                    <span className="font-bold text-[9px]">{order.status}</span>
                                 </div>
                             </div>
-                            <div className="border-t border-dashed border-gray-300 my-2.5" />
-                            <div className="space-y-1 mb-2">
-                                <div className="flex justify-between gap-2">
-                                    <span className="text-gray-500">Harga</span>
-                                    <span>{fmt(order.price)}</span>
+
+                            <div className="border-t border-dashed border-gray-300 my-1.5" />
+
+                            {/* Payment Info */}
+                            <div className="space-y-0.5 mb-1.5">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500 text-[9px]">Harga</span>
+                                    <span className="text-[9px]">{fmt(order.price)}</span>
                                 </div>
                                 {order.discount > 0 && (
-                                    <div className="flex justify-between gap-2 text-red-500">
-                                        <span>Diskon</span>
-                                        <span>-{fmt(order.discount)}</span>
+                                    <div className="flex justify-between text-red-500">
+                                        <span className="text-[9px]">Diskon</span>
+                                        <span className="text-[9px]">-{fmt(order.discount)}</span>
                                     </div>
                                 )}
-                                <div className="flex justify-between gap-2 font-bold">
-                                    <span>Total</span>
-                                    <span>{fmt(total)}</span>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-[9px]">Total</span>
+                                    <span className="text-[9px]">{fmt(total)}</span>
                                 </div>
-                                <div className="flex justify-between gap-2 text-green-600">
-                                    <span>DP Dibayar</span>
-                                    <span>{fmt(order.dp)}</span>
+                                <div className="flex justify-between text-green-600">
+                                    <span className="text-[9px]">DP Dibayar</span>
+                                    <span className="text-[9px]">{fmt(order.dp)}</span>
                                 </div>
                                 {remaining > 0 ? (
-                                    <div className="flex justify-between gap-2 font-bold text-red-500">
-                                        <span>Sisa</span>
-                                        <span>{fmt(remaining)}</span>
+                                    <div className="flex justify-between font-bold text-red-500">
+                                        <span className="text-[9px]">Sisa</span>
+                                        <span className="text-[9px]">{fmt(remaining)}</span>
                                     </div>
                                 ) : (
-                                    <div className="flex justify-between gap-2 font-bold text-green-600">
-                                        <span>Status Bayar</span>
-                                        <span>LUNAS</span>
+                                    <div className="flex justify-between font-bold text-green-600">
+                                        <span className="text-[9px]">Status Bayar</span>
+                                        <span className="text-[9px]">LUNAS</span>
                                     </div>
                                 )}
                             </div>
-                            <div className="border-t border-dashed border-gray-300 my-2.5" />
-                            <div className="flex justify-center my-3">
-                                <div className="w-14 h-14 border border-gray-400 p-1">
-                                    <div className="grid grid-cols-6 gap-px">
-                                        {QR_GRID.map((v, i) => (
-                                            <div key={i} className={`w-1.5 h-1.5 ${v ? "bg-gray-900" : "bg-white"}`} />
-                                        ))}
-                                    </div>
+
+                            <div className="border-t border-dashed border-gray-300 my-1.5" />
+
+                            {/* QR Code */}
+                            <div className="flex justify-center my-2">
+                                <div className="w-16 h-16">
+                                    <QRCodeSVG
+                                        value={`${window.location.origin}/track/${order.invoice}`}
+                                        size={64}
+                                        level="M"
+                                        includeMargin={false}
+                                        bgColor="#ffffff"
+                                        fgColor="#000000"
+                                    />
                                 </div>
                             </div>
-                            <div className="text-center text-gray-400 text-[10px] leading-relaxed">
+
+                            {/* Footer */}
+                            <div className="text-center text-gray-400 text-[9px] leading-relaxed">
                                 <p className="font-semibold text-gray-700 mb-0.5">Terima kasih atas kepercayaan Anda!</p>
                                 <p>Barang tidak diambil lebih dari 30 hari</p>
                                 <p>menjadi tanggung jawab pemilik.</p>
@@ -837,7 +927,7 @@ function CustomersPage({ customers, orders, onAdd, onEdit, onDelete, onShowDetai
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         placeholder="Cari nama atau nomor WhatsApp..."
-                        className={inputClass}
+                        className={searchInputClass}
                     />
                 </div>
                 <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors ml-auto">
@@ -979,11 +1069,12 @@ function ServicesPage({ services, onAdd, onEdit, onDelete }: {
 
 // ─── Page: Orders ─────────────────────────────────────────────────────────────
 
-function OrdersPage({ orders, setPage, setSelectedOrder, onDelete }: {
+function OrdersPage({ orders, setPage, setSelectedOrder, onDelete, onLoadDetail }: {
     orders: Order[];
     setPage: (p: Page) => void;
     setSelectedOrder: (o: Order) => void;
     onDelete: (o: Order) => void;
+    onLoadDetail?: (id: string) => void;
 }) {
     const [activeTab, setActiveTab] = useState("Semua");
     const [search, setSearch] = useState("");
@@ -1006,7 +1097,7 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete }: {
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         placeholder="Cari invoice atau nama pelanggan..."
-                        className={inputClass}
+                        className={searchInputClass}
                     />
                 </div>
                 <button
@@ -1047,7 +1138,7 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete }: {
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                         {filtered.map(o => (
-                            <tr key={o.id} className="hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => { setSelectedOrder(o); setPage("order-detail"); }}>
+                            <tr key={o.id} className="hover:bg-blue-50/30 transition-colors cursor-pointer" onClick={() => { setSelectedOrder(o); onLoadDetail?.(o.id); setPage("order-detail"); }}>
                                 <td className="px-5 py-3.5 text-sm font-bold text-blue-600">{o.invoice}</td>
                                 <td className="px-5 py-3.5 text-sm font-medium text-gray-900">{o.customer}</td>
                                 <td className="px-5 py-3.5 text-sm text-gray-600">{o.clothingType}</td>
@@ -1058,7 +1149,7 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete }: {
                                 <td className="px-5 py-3.5" onClick={e => e.stopPropagation()}>
                                     <div className="flex items-center gap-1">
                                         <button
-                                            onClick={() => { setSelectedOrder(o); setPage("order-detail"); }}
+                                            onClick={() => { setSelectedOrder(o); onLoadDetail?.(o.id); setPage("order-detail"); }}
                                             className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                         >
                                             <Eye size={14} />
@@ -1087,6 +1178,14 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete }: {
 
 // ─── Page: New Transaction ────────────────────────────────────────────────────
 
+interface OrderItemForm {
+    id: string;
+    clothingType: string;
+    serviceId: string;
+    qty: number;
+    price: number;
+}
+
 function NewTransactionPage({ services, customers, setPage, onCreate }: {
     services: Service[];
     customers: Customer[];
@@ -1094,26 +1193,72 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
     onCreate: (data: any) => Promise<void>;
 }) {
     const [customerId, setCustomerId] = useState("");
-    const [clothingType, setClothingType] = useState("");
-    const [serviceId, setServiceId] = useState("");
-    const [qty, setQty] = useState(1);
     const [deadline, setDeadline] = useState(new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10));
     const [notes, setNotes] = useState("");
     const [discount, setDiscount] = useState(0);
     const [dp, setDp] = useState(0);
     const [saving, setSaving] = useState(false);
+    const [items, setItems] = useState<OrderItemForm[]>([
+        { id: Date.now().toString(), clothingType: "", serviceId: "", qty: 1, price: 0 }
+    ]);
 
     const cust = customers.find(c => String(c.id) === String(customerId));
-    const svc = services.find(s => String(s.id) === String(serviceId));
-    const subtotal = svc ? svc.price * qty : 0;
+    const activeServices = services.filter(s => s.status === "Aktif");
+
+    const subtotal = items.reduce((sum, item) => {
+        const svc = services.find(s => String(s.id) === String(item.serviceId));
+        return sum + (svc ? svc.price * item.qty : 0);
+    }, 0);
+
     const total = Math.max(0, subtotal - discount);
     const remaining = Math.max(0, total - dp);
 
+    const addItem = () => {
+        setItems([...items, { id: Date.now().toString(), clothingType: "", serviceId: "", qty: 1, price: 0 }]);
+    };
+
+    const removeItem = (id: string) => {
+        if (items.length > 1) {
+            setItems(items.filter(item => item.id !== id));
+        }
+    };
+
+    const updateItem = (id: string, field: keyof OrderItemForm, value: string | number) => {
+        setItems(items.map(item => {
+            if (item.id === id) {
+                const updated = { ...item, [field]: value };
+                if (field === "serviceId") {
+                    const svc = services.find(s => String(s.id) === String(value));
+                    updated.price = svc ? svc.price : 0;
+                }
+                return updated;
+            }
+            return item;
+        }));
+    };
+
     const handleSave = async () => {
-        if (!customerId || !serviceId || !clothingType) {
-            alert("Lengkapi data pelanggan, jenis pakaian, dan layanan.");
+        if (!customerId) {
+            alert("Pilih pelanggan terlebih dahulu.");
             return;
         }
+
+        const validItems = items.filter(item => item.clothingType && item.serviceId);
+        if (validItems.length === 0) {
+            alert("Tambahkan minimal satu item pesanan.");
+            return;
+        }
+
+        const itemsWithNames = validItems.map(item => {
+            const svc = services.find(s => String(s.id) === String(item.serviceId));
+            return {
+                item_name: svc?.name || "",
+                category: item.clothingType,
+                price: item.price,
+                quantity: item.qty,
+            };
+        });
+
         setSaving(true);
         try {
             await onCreate({
@@ -1123,12 +1268,7 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                 notes,
                 discount,
                 down_payment: dp,
-                items: [{
-                    item_name: svc!.name,
-                    category: clothingType,
-                    price: svc!.price,
-                    quantity: qty,
-                }],
+                items: itemsWithNames,
             });
             setPage("orders");
         } catch (e: any) {
@@ -1165,37 +1305,88 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                 </div>
 
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                    <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2.5">
-                        <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                        Data Pesanan
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        <InputField label="Jenis Pakaian">
-                            <input
-                                type="text"
-                                value={clothingType}
-                                onChange={e => setClothingType(e.target.value)}
-                                placeholder="Contoh: Celana Jeans, Kemeja..."
-                                className={inputClass}
-                            />
-                        </InputField>
-                        <InputField label="Jumlah (pcs)">
-                            <input
-                                type="number"
-                                value={qty}
-                                onChange={e => setQty(Math.max(1, Number(e.target.value)))}
-                                min={1}
-                                className={inputClass}
-                            />
-                        </InputField>
-                        <InputField label="Jenis Layanan">
-                            <select value={serviceId} onChange={e => setServiceId(e.target.value)} className={inputClass}>
-                                <option value="">-- Pilih layanan --</option>
-                                {services.filter(s => s.status === "Aktif").map(s => (
-                                    <option key={s.id} value={s.id}>{s.name} — {fmt(s.price)}</option>
-                                ))}
-                            </select>
-                        </InputField>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-gray-900 flex items-center gap-2.5">
+                            <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">2</span>
+                            Data Pesanan
+                        </h3>
+                        <button
+                            onClick={addItem}
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 transition-colors"
+                        >
+                            <Plus size={13} />
+                            Tambah Item
+                        </button>
+                    </div>
+
+                    <div className="space-y-3">
+                        {items.map((item, index) => (
+                            <div key={item.id} className="border border-gray-200 rounded-xl p-4 space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm font-semibold text-gray-700">Item #{index + 1}</span>
+                                    {items.length > 1 && (
+                                        <button
+                                            onClick={() => removeItem(item.id)}
+                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Hapus item"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <InputField label="Jenis Pakaian">
+                                        <input
+                                            type="text"
+                                            value={item.clothingType}
+                                            onChange={e => updateItem(item.id, "clothingType", e.target.value)}
+                                            placeholder="Contoh: Celana Jeans, Kemeja..."
+                                            className={inputClass}
+                                        />
+                                    </InputField>
+                                    <InputField label="Jumlah (pcs)">
+                                        <input
+                                            type="number"
+                                            value={item.qty}
+                                            onChange={e => updateItem(item.id, "qty", Math.max(1, Number(e.target.value)))}
+                                            min={1}
+                                            className={inputClass}
+                                        />
+                                    </InputField>
+                                    <InputField label="Jenis Layanan">
+                                        <select
+                                            value={item.serviceId}
+                                            onChange={e => updateItem(item.id, "serviceId", e.target.value)}
+                                            className={inputClass}
+                                        >
+                                            <option value="">-- Pilih layanan --</option>
+                                            {activeServices.map(s => (
+                                                <option key={s.id} value={s.id}>{s.name} — {fmt(s.price)}</option>
+                                            ))}
+                                        </select>
+                                    </InputField>
+                                    <InputField label="Harga Satuan">
+                                        <input
+                                            type="text"
+                                            value={item.price ? fmt(item.price) : ""}
+                                            readOnly
+                                            className={readonlyClass}
+                                        />
+                                    </InputField>
+                                </div>
+
+                                {item.serviceId && (
+                                    <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">
+                                        <span className="text-gray-500">Subtotal item:</span>
+                                        <span className="font-semibold ml-2">{fmt(item.price * item.qty)}</span>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-4">
                         <InputField label="Deadline">
                             <input
                                 type="date"
@@ -1204,17 +1395,17 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                                 className={inputClass}
                             />
                         </InputField>
-                        <div className="col-span-2">
-                            <InputField label="Catatan">
-                                <textarea
-                                    value={notes}
-                                    onChange={e => setNotes(e.target.value)}
-                                    placeholder="Catatan khusus untuk pesanan ini..."
-                                    rows={2}
-                                    className={`${inputClass} resize-none`}
-                                />
-                            </InputField>
-                        </div>
+                    </div>
+                    <div className="mt-3">
+                        <InputField label="Catatan">
+                            <textarea
+                                value={notes}
+                                onChange={e => setNotes(e.target.value)}
+                                placeholder="Catatan khusus untuk pesanan ini..."
+                                rows={2}
+                                className={`${inputClass} resize-none`}
+                            />
+                        </InputField>
                     </div>
                 </div>
             </div>
@@ -1227,7 +1418,7 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                     </h3>
                     <div className="space-y-3">
                         <div className="flex justify-between text-sm">
-                            <span className="text-gray-500">Subtotal</span>
+                            <span className="text-gray-500">Subtotal ({items.length} item)</span>
                             <span className="font-semibold">{fmt(subtotal)}</span>
                         </div>
                         <InputField label="Diskon">
@@ -1294,6 +1485,7 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
     const remaining = total - order.dp;
     const idx = STATUS_FLOW.indexOf(order.status);
     const nextStatus = idx >= 0 && idx < STATUS_FLOW.length - 1 ? STATUS_FLOW[idx + 1] : null;
+    const orderItems = order.items || [];
 
     return (
         <div className="max-w-3xl mx-auto space-y-4">
@@ -1358,16 +1550,12 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
                         <h3 className="text-sm font-bold text-gray-900 mb-2">Informasi Pesanan</h3>
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
-                                <span className="text-gray-500">Jenis Pakaian</span>
-                                <span className="font-medium">{order.clothingType}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Layanan</span>
-                                <span className="font-medium">{order.service}</span>
-                            </div>
-                            <div className="flex justify-between">
                                 <span className="text-gray-500">Deadline</span>
                                 <span className="font-medium">{order.deadline}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Total Item</span>
+                                <span className="font-medium">{orderItems.length} jenis pakaian</span>
                             </div>
                         </div>
                     </div>
@@ -1377,6 +1565,53 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
                     <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3.5">
                         <p className="text-xs font-semibold text-amber-700 mb-1">Catatan</p>
                         <p className="text-sm text-amber-800">{order.notes}</p>
+                    </div>
+                )}
+
+                {orderItems.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-gray-100">
+                        <h3 className="text-sm font-bold text-gray-900 mb-3">Daftar Item Pesanan</h3>
+                        <div className="space-y-2">
+                            {orderItems.map((item, index) => (
+                                <div key={item.id || index} className="bg-gray-50 rounded-xl p-3.5">
+                                    <div className="flex items-start justify-between">
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
+                                                    Item #{index + 1}
+                                                </span>
+                                                <span className="text-sm font-semibold text-gray-900">
+                                                    {item.item_name}
+                                                </span>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">Jenis:</span>
+                                                    <span className="text-gray-700 font-medium">{item.category}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">Jumlah:</span>
+                                                    <span className="text-gray-700 font-medium">{item.quantity} pcs</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">Harga Satuan:</span>
+                                                    <span className="text-gray-700 font-medium">{fmt(item.price)}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-500">Subtotal:</span>
+                                                    <span className="text-gray-900 font-bold">{fmt(item.price * item.quantity)}</span>
+                                                </div>
+                                            </div>
+                                            {item.notes && (
+                                                <div className="mt-2 text-xs text-gray-600 bg-white rounded-lg p-2">
+                                                    <span className="text-gray-500">Catatan:</span> {item.notes}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 
@@ -1828,8 +2063,8 @@ export default function App() {
     };
     const deleteCustomer = (c: Customer) => {
         setConfirm({
-            title: "Hapus Pelanggan",
-            message: `Yakin hapus ${c.name}? Pesanan terkait juga akan terhapus.`,
+            title: "Konfirmasi Hapus",
+            message: `Apakah Anda yakin ingin menghapus pelanggan "${c.name}"? Data yang dihapus tidak dapat dikembalikan.`,
             onConfirm: async () => { await api.deleteCustomer(c.id); setConfirm(null); await loadAll(); setToast({ message: "Pelanggan berhasil dihapus!", type: "success" }); },
         });
     };
@@ -1852,8 +2087,8 @@ export default function App() {
     };
     const deleteService = (s: Service) => {
         setConfirm({
-            title: "Hapus Layanan",
-            message: `Yakin hapus layanan "${s.name}"?`,
+            title: "Konfirmasi Hapus",
+            message: `Apakah Anda yakin ingin menghapus layanan "${s.name}"? Data yang dihapus tidak dapat dikembalikan.`,
             onConfirm: async () => { await api.deleteService(s.id); setConfirm(null); await loadAll(); setToast({ message: "Layanan berhasil dihapus!", type: "success" }); },
         });
     };
@@ -1876,8 +2111,8 @@ export default function App() {
     };
     const deleteExpense = (e: Expense) => {
         setConfirm({
-            title: "Hapus Pengeluaran",
-            message: `Yakin hapus pengeluaran "${e.description || e.category}"?`,
+            title: "Konfirmasi Hapus",
+            message: `Apakah Anda yakin ingin menghapus pengeluaran "${e.description || e.category}"? Data yang dihapus tidak dapat dikembalikan.`,
             onConfirm: async () => { await api.deleteExpense(e.id); setConfirm(null); await loadAll(); setToast({ message: "Pengeluaran berhasil dihapus!", type: "success" }); },
         });
     };
@@ -1889,13 +2124,14 @@ export default function App() {
     };
     const deleteOrder = (o: Order) => {
         setConfirm({
-            title: "Hapus Pesanan",
-            message: `Yakin hapus pesanan ${o.invoice}?`,
+            title: "Konfirmasi Hapus",
+            message: `Apakah Anda yakin ingin menghapus pesanan "${o.invoice}"? Data yang dihapus tidak dapat dikembalikan.`,
             onConfirm: async () => {
                 await api.deleteOrder(o.id);
                 setConfirm(null);
                 if (selectedOrder?.id === o.id) setSelectedOrder(null);
                 await loadAll();
+                setToast({ message: "Pesanan berhasil dihapus!", type: "success" });
             },
         });
     };
@@ -1915,6 +2151,19 @@ export default function App() {
         await api.createPayment(selectedOrder.id, data);
         setPaymentModal(false);
         await loadAll();
+        // Reload order detail to reflect updated payment status
+        if (selectedOrder) {
+            await loadOrderDetail(selectedOrder.id);
+        }
+    };
+
+    const loadOrderDetail = async (orderId: string) => {
+        try {
+            const detail = await api.getOrder(orderId);
+            setSelectedOrder(detail);
+        } catch (err) {
+            console.error('Failed to load order detail:', err);
+        }
     };
 
     // ── WhatsApp
@@ -1949,8 +2198,8 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-[#F5F7FA] flex">
-            {/* Sidebar */}
-            <aside className={`${sidebarOpen ? "w-64" : "w-16"} bg-[#0F2544] transition-all duration-200 flex flex-col shrink-0`}>
+            {/* Sidebar - Fixed position */}
+            <aside className={`${sidebarOpen ? "w-64" : "w-16"} bg-[#0F2544] transition-all duration-200 flex flex-col shrink-0 fixed h-screen overflow-y-auto`}>
                 <div className="p-4 flex items-center gap-3 border-b border-white/10">
                     <div className="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center shrink-0">
                         <Scissors size={18} className="text-white" />
@@ -2000,10 +2249,10 @@ export default function App() {
                 </button>
             </aside>
 
-            {/* Main Content */}
-            <div className="flex-1 flex flex-col min-w-0">
+            {/* Main Content - Scrollable */}
+            <div className={`flex-1 flex flex-col min-w-0 ${sidebarOpen ? "ml-64" : "ml-16"}`}>
                 {/* Top Bar */}
-                <header className="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between">
+                <header className="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
                     <div>
                         <h1 className="text-lg font-bold text-gray-900">
                             {page === "dashboard" && "Dashboard"}
@@ -2035,7 +2284,7 @@ export default function App() {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 p-6 overflow-y-auto">
+                <main className="flex-1 p-6">
                     {loading && <p className="text-sm text-gray-400 mb-3">Memuat data...</p>}
                     {page === "dashboard" && (
                         <DashboardPage
@@ -2071,6 +2320,7 @@ export default function App() {
                             setPage={setPage}
                             setSelectedOrder={setSelectedOrder}
                             onDelete={deleteOrder}
+                            onLoadDetail={loadOrderDetail}
                         />
                     )}
                     {page === "new-transaction" && (

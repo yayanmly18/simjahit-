@@ -113,24 +113,43 @@ class WhatsAppController extends Controller
     {
         $apiUrl = env('WA_API_URL');
         $apiToken = env('WA_API_TOKEN');
-        $phoneNumber = env('WA_PHONE_NUMBER');
+        $phoneNumberId = env('WA_PHONE_NUMBER_ID');
 
-        if (!$apiUrl || !$apiToken) {
+        if (!$apiUrl || !$apiToken || !$phoneNumberId) {
             return false;
         }
 
         try {
-            Http::withHeaders([
+            // Format phone number (remove leading 0, add 62 if needed)
+            $phone = preg_replace('/^0/', '62', $phone);
+            $phone = preg_replace('/[^0-9]/', '', $phone);
+
+            // WhatsApp Cloud API format
+            $payload = [
+                'messaging_product' => 'whatsapp',
+                'recipient_type' => 'individual',
+                'to' => $phone,
+                'type' => 'text',
+                'text' => [
+                    'preview_url' => false,
+                    'body' => $message
+                ]
+            ];
+
+            $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $apiToken,
                 'Content-Type' => 'application/json',
-            ])->post($apiUrl, [
-                'phone' => $phone,
-                'message' => $message,
-                'from' => $phoneNumber,
+            ])->post($apiUrl, $payload);
+
+            // Log response for debugging
+            \Log::info('WhatsApp API Response', [
+                'status' => $response->status(),
+                'body' => $response->json()
             ]);
 
-            return true;
+            return $response->successful();
         } catch (\Exception $e) {
+            \Log::error('WhatsApp API Error: ' . $e->getMessage());
             return false;
         }
     }
