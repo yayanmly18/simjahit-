@@ -5,7 +5,8 @@ import {
     Search, Plus, X, Printer, MessageCircle, Phone, MapPin,
     Clock, Calendar, Eye, Edit2, Trash2, Download, ChevronRight,
     Wallet, TrendingUp, User, Package, CheckCircle2, Save,
-    Banknote, Smartphone, Send, FileText,
+    Banknote, Smartphone, Send, FileText, CheckCheck, Trash,
+    BellRing, BellOff,
 } from "lucide-react";
 import {
     AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -1899,7 +1900,6 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                             </div>
                         </>
                     )}
-                    </div>
                 </div>
             </div>
 
@@ -1919,7 +1919,7 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
 
 // ─── Page: Settings ───────────────────────────────────────────────────────────
 
-function SettingsPage() {
+function SettingsPage({ setToast }: { setToast: (t: { message: string; type: "success" | "error" } | null) => void }) {
     const [storeName, setStoreName] = useState("A.Y.A Tailor");
     const [address, setAddress] = useState("Jl. Sudirman No. 45, Bandung");
     const [phone, setPhone] = useState("022-1234567");
@@ -1969,9 +1969,9 @@ function SettingsPage() {
                     stock_alert: notif3,
                 }
             });
-            alert("Pengaturan berhasil disimpan ke database.");
+            setToast({ message: "Pengaturan berhasil disimpan!", type: "success" });
         } catch (err: any) {
-            alert("Gagal menyimpan: " + (err?.message || "terjadi kesalahan"));
+            setToast({ message: "Gagal menyimpan: " + (err?.message || "terjadi kesalahan"), type: "error" });
         } finally {
             setSaving(false);
         }
@@ -2019,6 +2019,244 @@ function SettingsPage() {
                     ))}
                 </div>
             </div>
+        </div>
+    );
+}
+
+// ─── Notification Dropdown Component ─────────────────────────────────────────
+
+interface NotificationItem {
+    id: number;
+    type: string;
+    title: string;
+    message: string;
+    icon: string | null;
+    color: string | null;
+    link_type: string | null;
+    link_id: string | null;
+    is_read: boolean;
+    created_at: string;
+}
+
+const NOTIF_ICONS: Record<string, any> = {
+    ShoppingBag: ShoppingBag,
+    Clock: Clock,
+    Scissors: Scissors,
+    CheckCircle2: CheckCircle2,
+    Package: Package,
+    Banknote: Banknote,
+    Calendar: Calendar,
+    Bell: Bell,
+    User: User,
+    Settings: SettingsIcon,
+};
+
+const NOTIF_COLORS: Record<string, string> = {
+    blue: "bg-blue-500",
+    amber: "bg-amber-500",
+    purple: "bg-purple-500",
+    green: "bg-green-500",
+    red: "bg-red-500",
+    slate: "bg-slate-500",
+};
+
+function NotificationDropdown({ onNavigate }: { onNavigate: (type: string, id: string) => void }) {
+    const [open, setOpen] = useState(false);
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const data = await api.getNotifications();
+            setNotifications(data.notifications || []);
+            setUnreadCount(data.unread_count || 0);
+        } catch (err) {
+            console.error('Failed to fetch notifications:', err);
+        }
+    }, []);
+
+    // Initial fetch
+    useEffect(() => {
+        fetchNotifications();
+    }, [fetchNotifications]);
+
+    // Poll every 10 seconds for real-time updates
+    useEffect(() => {
+        const interval = setInterval(fetchNotifications, 10000);
+        return () => clearInterval(interval);
+    }, [fetchNotifications]);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleMarkAllRead = async () => {
+        try {
+            await api.markAllNotificationsRead();
+            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+            setUnreadCount(0);
+        } catch (err) {
+            console.error('Failed to mark all as read:', err);
+        }
+    };
+
+    const handleNotificationClick = async (notif: NotificationItem) => {
+        // Mark as read
+        if (!notif.is_read) {
+            try {
+                await api.markNotificationRead(notif.id);
+                setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            } catch (err) {
+                console.error('Failed to mark notification as read:', err);
+            }
+        }
+
+        // Navigate if link exists
+        if (notif.link_type && notif.link_id) {
+            onNavigate(notif.link_type, notif.link_id);
+            setOpen(false);
+        }
+    };
+
+    const handleDelete = async (e: MouseEvent, id: number) => {
+        e.stopPropagation();
+        try {
+            await api.deleteNotification(id);
+            setNotifications(prev => prev.filter(n => n.id !== id));
+            setUnreadCount(prev => Math.max(0, prev - 1));
+        } catch (err) {
+            console.error('Failed to delete notification:', err);
+        }
+    };
+
+    const handleClearAll = async () => {
+        try {
+            await api.clearAllNotifications();
+            setNotifications([]);
+            setUnreadCount(0);
+        } catch (err) {
+            console.error('Failed to clear notifications:', err);
+        }
+    };
+
+    const timeAgo = (dateStr: string) => {
+        const now = new Date();
+        const date = new Date(dateStr);
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Baru saja';
+        if (diffMins < 60) return `${diffMins} menit lalu`;
+        if (diffHours < 24) return `${diffHours} jam lalu`;
+        if (diffDays < 7) return `${diffDays} hari lalu`;
+        return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    };
+
+    return (
+        <div className="relative" ref={dropdownRef}>
+            <button
+                onClick={() => setOpen(!open)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors relative"
+            >
+                {unreadCount > 0 ? <BellRing size={18} /> : <Bell size={18} />}
+                {unreadCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center min-w-[18px] min-h-[18px]">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                )}
+            </button>
+
+            {open && (
+                <div className="absolute right-0 top-full mt-2 w-[420px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
+                        <div>
+                            <h3 className="font-bold text-gray-900 text-sm">Notifikasi</h3>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                                {unreadCount > 0 ? `${unreadCount} belum dibaca` : 'Semua sudah dibaca'}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {unreadCount > 0 && (
+                                <button
+                                    onClick={handleMarkAllRead}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                >
+                                    <CheckCheck size={13} />
+                                    Baca Semua
+                                </button>
+                            )}
+                            {notifications.length > 0 && (
+                                <button
+                                    onClick={handleClearAll}
+                                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                >
+                                    <Trash size={13} />
+                                    Hapus
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Notification List */}
+                    <div className="max-h-[400px] overflow-y-auto">
+                        {notifications.length === 0 ? (
+                            <div className="py-12 text-center">
+                                <BellOff size={32} className="mx-auto text-gray-200 mb-3" />
+                                <p className="text-sm text-gray-400">Tidak ada notifikasi</p>
+                            </div>
+                        ) : (
+                            notifications.map((notif) => {
+                                const IconComponent = NOTIF_ICONS[notif.icon || ''] || Bell;
+                                const colorClass = NOTIF_COLORS[notif.color || ''] || 'bg-blue-500';
+
+                                return (
+                                    <div
+                                        key={notif.id}
+                                        onClick={() => handleNotificationClick(notif)}
+                                        className={`flex items-start gap-3.5 px-5 py-3.5 cursor-pointer transition-all hover:bg-gray-50 border-b border-gray-50 last:border-0 ${!notif.is_read ? 'bg-blue-50/40' : ''}`}
+                                    >
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${colorClass}`}>
+                                            <IconComponent size={16} className="text-white" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <p className={`text-sm leading-tight ${!notif.is_read ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                                                    {notif.title}
+                                                </p>
+                                                {!notif.is_read && (
+                                                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1.5" />
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notif.message}</p>
+                                            <div className="flex items-center justify-between mt-1.5">
+                                                <span className="text-[10px] text-gray-400">{timeAgo(notif.created_at)}</span>
+                                                <button
+                                                    onClick={(e) => handleDelete(e, notif.id)}
+                                                    className="p-0.5 text-gray-300 hover:text-red-500 transition-colors"
+                                                >
+                                                    <X size={11} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -2184,6 +2422,7 @@ export default function App() {
     const createOrder = async (data: any) => {
         await api.createOrder(data);
         await loadAll();
+        setToast({ message: "Pesanan berhasil ditambahkan!", type: "success" });
     };
     const deleteOrder = (o: Order) => {
         setConfirm({
@@ -2208,6 +2447,7 @@ export default function App() {
         const updated = orders.find(o => o.id === selectedOrder.id);
         // refresh selected from latest loaded state
         setSelectedOrder((prev) => prev ? { ...prev, status: next } : prev);
+        setToast({ message: `Status pesanan berhasil diubah ke: ${next}`, type: "success" });
     };
     const savePayment = async (data: any) => {
         if (!selectedOrder) return;
@@ -2218,6 +2458,7 @@ export default function App() {
         if (selectedOrder) {
             await loadOrderDetail(selectedOrder.id);
         }
+        setToast({ message: "Pembayaran berhasil dicatat!", type: "success" });
     };
 
     const loadOrderDetail = async (orderId: string) => {
@@ -2243,6 +2484,13 @@ export default function App() {
             setShowWhatsApp(false);
         }
     };
+
+    const handleNotificationNavigate = useCallback(async (type: string, id: string) => {
+        if (type === 'order-detail') {
+            await loadOrderDetail(id);
+            setPage('order-detail');
+        }
+    }, [loadOrderDetail]);
 
     const navItems: { icon: (props: { size?: number; className?: string }) => any; label: string; page: Page }[] = [
         { icon: LayoutDashboard, label: "Dashboard", page: "dashboard" },
@@ -2330,10 +2578,7 @@ export default function App() {
                         </h1>
                     </div>
                     <div className="flex items-center gap-3">
-                        <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors relative">
-                            <Bell size={18} />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-                        </button>
+                        <NotificationDropdown onNavigate={handleNotificationNavigate} />
                         <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
                             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                                 <User size={14} className="text-white" />
@@ -2412,7 +2657,7 @@ export default function App() {
                         />
                     )}
                     {page === "reports" && <ReportsPage orders={orders} expenses={expenses} />}
-                    {page === "settings" && <SettingsPage />}
+                    {page === "settings" && <SettingsPage setToast={setToast} />}
                 </main>
             </div>
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Order;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -54,6 +55,14 @@ class CustomerApiController extends Controller
         }
 
         $customer = Customer::create($request->all());
+
+        // Create notification for new customer
+        try {
+            $notifService = new NotificationService();
+            $notifService->customerCreated($customer->name, $customer->id);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create notification: ' . $e->getMessage());
+        }
 
         return response()->json([
             'id' => $customer->id,
@@ -115,6 +124,14 @@ class CustomerApiController extends Controller
         }
 
         $customer->update($request->all());
+
+        // Create notification for customer update
+        try {
+            $notifService = new NotificationService();
+            $notifService->customerUpdated($customer->name, $customer->id);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create notification: ' . $e->getMessage());
+        }
 
         return response()->json([
             'id' => $customer->id,

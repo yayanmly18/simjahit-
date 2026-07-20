@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\ThermalPrinterService;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -269,6 +270,14 @@ class OrderController extends Controller
             ]);
         }
 
+        // Create notification for new order
+        try {
+            $notifService = new NotificationService();
+            $notifService->orderCreated($order);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create notification: ' . $e->getMessage());
+        }
+
         return response()->json([
             'id' => $order->id,
             'invoice' => $order->order_number,
@@ -369,7 +378,21 @@ class OrderController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $oldStatus = $order->status;
         $order->update(['status' => $request->status]);
+
+        // Create notification for status change
+        try {
+            $notifService = new NotificationService();
+            $notifService->orderStatusChanged($order, $oldStatus, $request->status);
+
+            // If status changed to completed, also create ready for pickup notification
+            if ($request->status === 'completed') {
+                $notifService->orderReadyForPickup($order);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Failed to create notification: ' . $e->getMessage());
+        }
 
         return response()->json([
             'id' => $order->id,

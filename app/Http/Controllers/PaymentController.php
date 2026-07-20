@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Payment;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -79,6 +80,14 @@ class PaymentController extends Controller
         ]);
 
         $this->recalcOrder($order);
+
+        // Create notification for payment
+        try {
+            $notifService = new NotificationService();
+            $notifService->paymentReceived($order, $request->amount, $request->type);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create notification: ' . $e->getMessage());
+        }
 
         return response()->json([
             'id' => $payment->id,

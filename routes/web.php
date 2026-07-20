@@ -60,6 +60,14 @@ Route::middleware('auth')->prefix('api')->group(function () {
     Route::put('/expenses/{expense}', [ExpenseApiController::class, 'update']);
     Route::delete('/expenses/{expense}', [ExpenseApiController::class, 'destroy']);
 
+    // Notifications API
+    Route::get('/notifications', [\App\Http\Controllers\Api\NotificationApiController::class, 'index']);
+    Route::get('/notifications/unread', [\App\Http\Controllers\Api\NotificationApiController::class, 'unread']);
+    Route::post('/notifications/{id}/read', [\App\Http\Controllers\Api\NotificationApiController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [\App\Http\Controllers\Api\NotificationApiController::class, 'markAllAsRead']);
+    Route::delete('/notifications/{id}', [\App\Http\Controllers\Api\NotificationApiController::class, 'destroy']);
+    Route::delete('/notifications', [\App\Http\Controllers\Api\NotificationApiController::class, 'clearAll']);
+
     // Dashboard Stats API
     Route::get('/dashboard/stats', function () {
         $today = \Carbon\Carbon::today()->toDateString();

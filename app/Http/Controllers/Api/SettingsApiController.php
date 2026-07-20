@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -52,6 +53,14 @@ class SettingsApiController
                 ['key' => $key],
                 ['value' => $value, 'updated_at' => now()]
             );
+        }
+
+        // Create notification for settings update
+        try {
+            $notifService = new NotificationService();
+            $notifService->settingsUpdated();
+        } catch (\Exception $e) {
+            \Log::error('Failed to create notification: ' . $e->getMessage());
         }
 
         return response()->json([

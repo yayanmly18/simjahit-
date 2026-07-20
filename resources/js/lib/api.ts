@@ -184,4 +184,21 @@ export const api = {
             method: 'PUT',
             body: JSON.stringify(data),
         }),
+
+    // Notifications
+    getNotifications: () => fetchApi<{ notifications: any[]; unread_count: number }>('/notifications'),
+
+    getUnreadNotifications: () => fetchApi<{ notifications: any[]; unread_count: number }>('/notifications/unread'),
+
+    markNotificationRead: (id: number) =>
+        fetchApi<any>(`/notifications/${id}/read`, { method: 'POST' }),
+
+    markAllNotificationsRead: () =>
+        fetchApi<any>('/notifications/read-all', { method: 'POST' }),
+
+    deleteNotification: (id: number) =>
+        fetchApi<void>(`/notifications/${id}`, { method: 'DELETE' }),
+
+    clearAllNotifications: () =>
+        fetchApi<void>('/notifications', { method: 'DELETE' }),
 };
