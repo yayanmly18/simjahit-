@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, ChangeEvent, MouseEvent as ReactMouseEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     LayoutDashboard, Users, Scissors, ShoppingBag, CreditCard,
     TrendingDown, BarChart2, Settings as SettingsIcon, LogOut, Bell,
@@ -6,7 +7,7 @@ import {
     Clock, Calendar, Eye, Edit2, Trash2, Download, ChevronRight,
     Wallet, TrendingUp, User, Package, CheckCircle2, Save,
     Banknote, Smartphone, Send, FileText, CheckCheck, Trash,
-    BellRing, BellOff,
+    BellRing, BellOff, Lock, Fingerprint,
 } from "lucide-react";
 import {
     AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -16,9 +17,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { api, loginApi, logoutApi } from "../lib/api";
 
 type User = { id: string | number; name: string; email: string };
-
-
-
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -73,8 +71,6 @@ const STATUS_FLOW: OrderStatus[] = ["Menunggu", "Diproses", "Finishing", "Selesa
 
 // ─── Mock-free constants still needed for visuals ─────────────────────────────
 
-// QR_GRID removed - using real QR code
-
 const PIE_COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -109,7 +105,6 @@ function InputField({ label, children }: { label: string; children: any }) {
     );
 }
 
-
 const inputClass = "w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white";
 const readonlyClass = "w-full px-4 py-2.5 border border-gray-100 rounded-xl text-sm bg-gray-50 text-gray-500";
 const searchInputClass = "w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white";
@@ -117,7 +112,6 @@ const searchInputClass = "w-full pl-10 pr-4 py-2.5 border border-gray-200 rounde
 // ─── Modals ───────────────────────────────────────────────────────────────────
 
 function Backdrop({ children }: { children: any }) {
-
     return (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-50 flex items-center justify-center p-4">
             {children}
@@ -259,8 +253,6 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                 setLoading(false);
             }
         };
-
-        // Always fetch fresh data to ensure we have all items
         fetchOrderDetail();
     }, [order.id]);
 
@@ -292,7 +284,6 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                 <div className="p-6 bg-gray-100">
                     <div className="w-[280px] bg-white font-mono text-[10px] mx-auto shadow-lg rounded-sm">
                         <div className="p-3">
-                            {/* Header */}
                             <div className="text-center mb-2">
                                 <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center mx-auto mb-1">
                                     <Scissors size={12} className="text-white" />
@@ -302,10 +293,7 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                                 <p className="text-gray-400 text-[9px]">Jl. Sudirman No. 45, Bandung</p>
                                 <p className="text-gray-400 text-[9px]">Telp: 022-1234567</p>
                             </div>
-
                             <div className="border-t border-dashed border-gray-300 my-1.5" />
-
-                            {/* Invoice Info */}
                             <div className="space-y-0.5 mb-1.5">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">No. Invoice</span>
@@ -316,19 +304,13 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                                     <span className="text-[9px]">{order.createdAt}</span>
                                 </div>
                             </div>
-
                             <div className="border-t border-dashed border-gray-300 my-1.5" />
-
-                            {/* Customer Info */}
                             <div className="mb-1.5">
                                 <p className="text-gray-900 text-[9px] font-bold mb-0.5">Pelanggan:</p>
                                 <p className="text-gray-800 text-[9px]">{order.customer}</p>
                                 <p className="text-gray-500 text-[9px]">{order.phone}</p>
                             </div>
-
                             <div className="border-t border-dashed border-gray-300 my-1.5" />
-
-                            {/* Items */}
                             {orderItems.length > 0 ? (
                                 <div className="mb-1.5">
                                     <p className="text-gray-900 text-[9px] font-bold mb-1">Daftar Item:</p>
@@ -360,10 +342,7 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                                     </div>
                                 </div>
                             )}
-
                             <div className="border-t border-dashed border-gray-300 my-1.5" />
-
-                            {/* Order Info */}
                             <div className="space-y-0.5 mb-1.5">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500 text-[9px]">Deadline</span>
@@ -374,10 +353,7 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                                     <span className="font-bold text-[9px]">{order.status}</span>
                                 </div>
                             </div>
-
                             <div className="border-t border-dashed border-gray-300 my-1.5" />
-
-                            {/* Payment Info */}
                             <div className="space-y-0.5 mb-1.5">
                                 <div className="flex justify-between">
                                     <span className="text-gray-500 text-[9px]">Harga</span>
@@ -409,10 +385,7 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                                     </div>
                                 )}
                             </div>
-
                             <div className="border-t border-dashed border-gray-300 my-1.5" />
-
-                            {/* QR Code */}
                             <div className="flex justify-center my-2">
                                 <div className="w-16 h-16">
                                     <QRCodeSVG
@@ -425,8 +398,6 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                                     />
                                 </div>
                             </div>
-
-                            {/* Footer */}
                             <div className="text-center text-gray-400 text-[9px] leading-relaxed">
                                 <p className="font-semibold text-gray-700 mb-0.5">Terima kasih atas kepercayaan Anda!</p>
                                 <p>Barang tidak diambil lebih dari 30 hari</p>
@@ -616,93 +587,321 @@ function ConfirmModal({ title, message, onConfirm, onClose }: {
     );
 }
 
-// ─── Page: Login ──────────────────────────────────────────────────────────────
+// ─── Loading Spinner Component ─────────────────────────────────────────────────
+
+function LoadingSpinner({ message = "Memuat data..." }: { message?: string }) {
+    return (
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
+            <motion.div
+                className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            />
+            <motion.p
+                className="text-sm text-gray-500"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+            >
+                {message}
+            </motion.p>
+        </div>
+    );
+}
+
+// ─── Sewing Thread Animation ───────────────────────────────────────────────────
+
+function SewingThread() {
+    return (
+        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.04]" viewBox="0 0 1000 800" preserveAspectRatio="none">
+            <motion.path
+                d="M0,400 Q250,100 500,400 T1000,400"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 3, ease: "easeInOut" }}
+            />
+            <motion.path
+                d="M0,500 Q250,200 500,500 T1000,500"
+                fill="none"
+                stroke="white"
+                strokeWidth="1.5"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 3.5, delay: 0.5, ease: "easeInOut" }}
+            />
+            <motion.path
+                d="M0,300 Q250,0 500,300 T1000,300"
+                fill="none"
+                stroke="white"
+                strokeWidth="1"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 4, delay: 1, ease: "easeInOut" }}
+            />
+        </svg>
+    );
+}
+
+// ─── Stitch Pattern Background ─────────────────────────────────────────────────
+
+function StitchPattern() {
+    return (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {[...Array(20)].map((_, i) => (
+                <motion.div
+                    key={i}
+                    className="absolute w-1 h-1 bg-blue-400/20 rounded-full"
+                    style={{
+                        left: `${(i + 1) * 5}%`,
+                        top: `${i % 2 === 0 ? 15 : 85}%`,
+                    }}
+                    animate={{
+                        opacity: [0.1, 0.4, 0.1],
+                        scale: [1, 1.5, 1],
+                    }}
+                    transition={{
+                        duration: 2 + (i % 3),
+                        repeat: Infinity,
+                        delay: i * 0.15,
+                        ease: "easeInOut",
+                    }}
+                />
+            ))}
+            {[...Array(5)].map((_, i) => (
+                <motion.div
+                    key={`v-${i}`}
+                    className="absolute w-px h-20 bg-gradient-to-b from-transparent via-blue-400/10 to-transparent"
+                    style={{ left: `${20 + i * 15}%`, top: `${30 + i * 8}%` }}
+                    animate={{ opacity: [0, 0.5, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, delay: i * 0.4, ease: "easeInOut" }}
+                />
+            ))}
+        </div>
+    );
+}
+
+// ─── Fabric Texture Overlay ────────────────────────────────────────────────────
+
+function FabricOverlay() {
+    return (
+        <div
+            className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{
+                backgroundImage: `repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255,255,255,0.03) 2px,
+                    rgba(255,255,255,0.03) 4px
+                )`,
+            }}
+        />
+    );
+}
+
+// ─── Login Page ────────────────────────────────────────────────────────────────
 
 function LoginPage({ onLogin }: { onLogin: (payload: { username: string; password: string }) => void }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
     return (
+        <motion.div
+            className="min-h-screen flex bg-gradient-to-br from-[#0F2544] via-[#1a3a6b] to-[#0F2544]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+        >
+            {/* Background decorations */}
+            <SewingThread />
+            <StitchPattern />
+            <FabricOverlay />
 
-        <div className="min-h-screen flex">
-            <div className="hidden lg:flex flex-1 bg-gradient-to-br from-[#0F2544] via-[#1a3a6b] to-[#0F2544] items-center justify-center p-12 relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10">
-                    {[...Array(6)].map((_, i) => (
-                        <div
-                            key={i}
-                            className="absolute border border-white/30 rounded-full"
-                            style={{
-                                width: `${(i + 1) * 150}px`,
-                                height: `${(i + 1) * 150}px`,
-                                top: "50%",
-                                left: "50%",
-                                transform: "translate(-50%, -50%)",
-                            }}
-                        />
-                    ))}
-                </div>
-                <div className="relative text-center text-white">
-                    <div className="w-20 h-20 bg-blue-500 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
-                        <Scissors size={36} className="text-white" />
-                    </div>
-                    <h1 className="text-4xl font-bold mb-3 tracking-tight">A.Y.A Tailor</h1>
-                    <p className="text-blue-200 text-lg mb-8">Sistem Informasi Manajemen</p>
-                    <p className="text-blue-200/70 text-sm leading-relaxed max-w-xs mx-auto">
-                        Kelola jasa jahit dan permak pakaian Anda dengan mudah, cepat, dan profesional.
-                    </p>
-                    <div className="mt-10 grid grid-cols-3 gap-4 text-sm text-blue-100/70">
-                        {["Catat Pesanan", "Kelola Pembayaran", "Cetak Nota"].map(f => (
-                            <div key={f} className="bg-white/10 rounded-xl p-3 text-center text-xs">{f}</div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
-                <div className="w-full max-w-sm">
-                    <div className="lg:hidden flex justify-center mb-8">
-                        <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <Scissors size={24} className="text-white" />
-                        </div>
-                    </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-1">Selamat Datang</h2>
-                    <p className="text-gray-500 text-sm mb-8">Masuk ke akun A.Y.A Tailor Anda</p>
-
-                    <form
-                        onSubmit={e => { e.preventDefault(); onLogin({ username, password }); }}
-                        className="space-y-4"
+            {/* Left Side - Brand Panel */}
+            <motion.div
+                className="hidden lg:flex flex-1 items-center justify-center p-12 relative"
+                initial={{ x: -80, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+                <motion.div
+                    className="text-center text-white max-w-sm"
+                    initial={{ y: 30 }}
+                    animate={{ y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                >
+                    {/* Logo */}
+                    <motion.div
+                        className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/20"
+                        whileHover={{ scale: 1.05, rotate: 3 }}
+                        transition={{ type: "spring", stiffness: 300 }}
                     >
-                        <InputField label="Username">
-                            <input
-                                type="text"
-                                value={username}
-                                onChange={e => setUsername(e.target.value)}
-                                placeholder="Masukkan username"
-                                className={inputClass}
-                            />
-                        </InputField>
-                        <InputField label="Password">
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                                placeholder="Masukkan password"
-                                className={inputClass}
-                            />
-                        </InputField>
-                        <button
-                            type="submit"
-                            className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm shadow-blue-200 mt-2"
+                        <Scissors size={34} className="text-white" />
+                    </motion.div>
+
+                    <motion.h1
+                        className="text-3xl font-bold mb-2 tracking-tight"
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                    >
+                        A.Y.A Tailor
+                    </motion.h1>
+
+                    <motion.p
+                        className="text-blue-200/70 text-sm mb-6 leading-relaxed"
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
+                    >
+                        Sistem manajemen jahit dan permak pakaian yang memudahkan Anda mengelola pesanan, pembayaran, dan pelanggan.
+                    </motion.p>
+
+                    {/* Feature list */}
+                    <motion.div
+                        className="space-y-3 text-left"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            visible: { transition: { staggerChildren: 0.12, delayChildren: 0.5 } },
+                            hidden: {},
+                        }}
+                    >
+                        {[
+                            { icon: ShoppingBag, text: "Catat & kelola pesanan jahit" },
+                            { icon: Wallet, text: "Atur pembayaran dan DP" },
+                            { icon: Printer, text: "Cetak nota thermal otomatis" },
+                            { icon: MessageCircle, text: "Notifikasi WhatsApp otomatis" },
+                        ].map((item) => {
+                            const Icon = item.icon;
+                            return (
+                                <motion.div
+                                    key={item.text}
+                                    className="flex items-center gap-3 text-sm text-blue-200/80"
+                                    variants={{
+                                        hidden: { x: -20, opacity: 0 },
+                                        visible: { x: 0, opacity: 1, transition: { duration: 0.4 } },
+                                    }}
+                                >
+                                    <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                        <Icon size={13} className="text-blue-300" />
+                                    </div>
+                                    <span>{item.text}</span>
+                                </motion.div>
+                            );
+                        })}
+                    </motion.div>
+                </motion.div>
+            </motion.div>
+
+            {/* Right Side - Login Form */}
+            <motion.div
+                className="flex-1 flex items-center justify-center p-6 lg:p-12"
+                initial={{ x: 80, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+                <motion.div
+                    className="w-full max-w-sm"
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                >
+                    {/* Card */}
+                    <div className="bg-white rounded-2xl shadow-2xl p-8">
+                        {/* Mobile logo */}
+                        <motion.div
+                            className="lg:hidden flex justify-center mb-6"
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
                         >
-                            Masuk ke Sistem
-                        </button>
-                    </form>
-                    <p className="text-center text-xs text-gray-400 mt-8">
-                        © 2026 A.Y.A Tailor · Versi 1.0
-                    </p>
-                </div>
-            </div>
-        </div>
+                            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
+                                <Scissors size={24} className="text-white" />
+                            </div>
+                        </motion.div>
+
+                        {/* Header */}
+                        <motion.div
+                            className="mb-6"
+                            initial={{ y: 15, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ duration: 0.4, delay: 0.4 }}
+                        >
+                            <h2 className="text-xl font-bold text-gray-900">Masuk</h2>
+                            <p className="text-sm text-gray-500 mt-1">Masukkan username dan password Anda</p>
+                        </motion.div>
+
+                        {/* Form */}
+                        <form
+                            onSubmit={e => { e.preventDefault(); onLogin({ username, password }); }}
+                            className="space-y-4"
+                        >
+                            <motion.div
+                                initial={{ y: 15, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.4, delay: 0.5 }}
+                            >
+                                <InputField label="Username">
+                                    <input
+                                        type="text"
+                                        value={username}
+                                        onChange={e => setUsername(e.target.value)}
+                                        placeholder="Masukkan username"
+                                        className={inputClass}
+                                    />
+                                </InputField>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ y: 15, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.4, delay: 0.6 }}
+                            >
+                                <InputField label="Password">
+                                    <input
+                                        type="password"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        placeholder="Masukkan password"
+                                        className={inputClass}
+                                    />
+                                </InputField>
+                            </motion.div>
+
+                            <motion.div
+                                initial={{ y: 15, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.4, delay: 0.7 }}
+                            >
+                                <motion.button
+                                    type="submit"
+                                    className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 shadow-sm shadow-blue-200"
+                                    whileHover={{ scale: 1.01, backgroundColor: "#2563eb" }}
+                                    whileTap={{ scale: 0.99 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                                >
+                                    Masuk ke Sistem
+                                </motion.button>
+                            </motion.div>
+                        </form>
+
+                        {/* Footer */}
+                        <motion.p
+                            className="text-center text-xs text-gray-400 mt-6"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 0.9 }}
+                        >
+                            © 2026 A.Y.A Tailor · Versi 1.0
+                        </motion.p>
+                    </div>
+                </motion.div>
+            </motion.div>
+        </motion.div>
     );
 }
 
@@ -715,7 +914,6 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
     setShowWhatsApp: (v: boolean) => void;
     onLoadDetail?: (id: string) => void;
 }) {
-    // Use local date format to match backend
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const monthPrefix = today.slice(0, 7);
@@ -735,36 +933,20 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
         { icon: TrendingUp, label: "Pendapatan Bulan Ini", value: fmt(monthlyRevenue), sub: new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" }), color: "bg-purple-500" },
     ];
 
-    // Build weekly revenue data from completed orders for current month
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
-
-    // Define weeks for current month
-    const getWeekLabel = (weekNum: number) => {
-        const startDay = (weekNum - 1) * 7 + 1;
-        const endDay = Math.min(weekNum * 7, new Date(currentYear, currentMonth + 1, 0).getDate());
-        return `Minggu ${weekNum} (${startDay}-${endDay})`;
-    };
-
     const weekLabels = ["Minggu 1 (1-7)", "Minggu 2 (8-14)", "Minggu 3 (15-21)", "Minggu 4 (22-akhir)"];
 
     const REVENUE_DATA = weekLabels.map((label, weekNum) => {
-        const startDay = weekNum * 7 - 6; // 1, 8, 15, 22
-        const endDay = weekNum === 4 ? new Date(currentYear, currentMonth + 1, 0).getDate() : weekNum * 7; // last day of month or 7, 14, 21
-
-        // Filter completed orders in this week
+        const startDay = weekNum * 7 - 6;
+        const endDay = weekNum === 4 ? new Date(currentYear, currentMonth + 1, 0).getDate() : weekNum * 7;
         const pendapatan = orders
             .filter(o => {
                 if (o.status !== "Selesai" || !o.createdAt) return false;
-                // Parse date string directly (format: Y-m-d)
                 const [year, month, day] = o.createdAt.split('-').map(Number);
-                return year === currentYear &&
-                    month - 1 === currentMonth &&
-                    day >= startDay &&
-                    day <= endDay;
+                return year === currentYear && month - 1 === currentMonth && day >= startDay && day <= endDay;
             })
             .reduce((s, o) => s + (o.price - o.discount), 0);
-
         return { month: label, pendapatan, pengeluaran: 0 };
     });
 
@@ -813,10 +995,7 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
                             <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                             <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                             <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000000).toFixed(1)}jt`} />
-                            <Tooltip
-                                formatter={(v: number) => [fmt(v), "Pendapatan"]}
-                                contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-                            />
+                            <Tooltip formatter={(v: number) => [fmt(v), "Pendapatan"]} contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
                             <Area type="monotone" dataKey="pendapatan" stroke="#3B82F6" strokeWidth={2.5} fill="url(#gRev)" />
                         </AreaChart>
                     </ResponsiveContainer>
@@ -828,8 +1007,7 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
                     {(() => {
                         const counts: Record<string, number> = {};
                         orders.forEach(o => { counts[o.service] = (counts[o.service] || 0) + 1; });
-                        const TOP = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5)
-                            .map(([name, jumlah]) => ({ name, jumlah }));
+                        const TOP = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, jumlah]) => ({ name, jumlah }));
                         if (TOP.length === 0) return <p className="text-sm text-gray-400">Belum ada data.</p>;
                         return (
                             <ResponsiveContainer width="100%" height={200}>
@@ -849,10 +1027,7 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <h3 className="font-bold text-gray-900">Pesanan Terbaru</h3>
-                    <button
-                        onClick={() => setPage("orders")}
-                        className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1"
-                    >
+                    <button onClick={() => setPage("orders")} className="text-sm text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1">
                         Lihat Semua <ChevronRight size={14} />
                     </button>
                 </div>
@@ -861,9 +1036,7 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
                         <thead>
                             <tr className="border-b border-gray-50">
                                 {["Invoice", "Pelanggan", "Jenis Pakaian", "Layanan", "Status", "Deadline", "Aksi"].map(h => (
-                                    <th key={h} className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">
-                                        {h}
-                                    </th>
+                                    <th key={h} className="text-left text-[11px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">{h}</th>
                                 ))}
                             </tr>
                         </thead>
@@ -878,21 +1051,9 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
                                     <td className="px-5 py-3.5 text-sm text-gray-600">{o.deadline}</td>
                                     <td className="px-5 py-3.5" onClick={e => e.stopPropagation()}>
                                         <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => { setSelectedOrder(o); onLoadDetail?.(o.id); setPage("order-detail"); }}
-                                                className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                                title="Lihat Detail"
-                                            >
-                                                <Eye size={15} />
-                                            </button>
+                                            <button onClick={() => { setSelectedOrder(o); onLoadDetail?.(o.id); setPage("order-detail"); }} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail"><Eye size={15} /></button>
                                             {o.status === "Selesai" && (
-                                                <button
-                                                    onClick={() => { setSelectedOrder(o); setShowWhatsApp(true); }}
-                                                    className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                                                    title="Kirim WhatsApp"
-                                                >
-                                                    <MessageCircle size={15} />
-                                                </button>
+                                                <button onClick={() => { setSelectedOrder(o); setShowWhatsApp(true); }} className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors" title="Kirim WhatsApp"><MessageCircle size={15} /></button>
                                             )}
                                         </div>
                                     </td>
@@ -929,17 +1090,10 @@ function CustomersPage({ customers, orders, onAdd, onEdit, onDelete, onShowDetai
             <div className="flex items-center gap-3">
                 <div className="relative flex-1 max-w-sm">
                     <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder="Cari nama atau nomor WhatsApp..."
-                        className={searchInputClass}
-                    />
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari nama atau nomor WhatsApp..." className={searchInputClass} />
                 </div>
                 <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors ml-auto">
-                    <Plus size={15} />
-                    Tambah Pelanggan
+                    <Plus size={15} /> Tambah Pelanggan
                 </button>
             </div>
 
@@ -960,17 +1114,13 @@ function CustomersPage({ customers, orders, onAdd, onEdit, onDelete, onShowDetai
                             <tr key={c.id} className="hover:bg-blue-50/30 transition-colors">
                                 <td className="px-5 py-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
-                                            <User size={13} className="text-blue-600" />
-                                        </div>
+                                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center shrink-0"><User size={13} className="text-blue-600" /></div>
                                         <span className="text-sm font-semibold text-gray-900">{c.name}</span>
                                     </div>
                                 </td>
                                 <td className="px-5 py-4 text-sm text-gray-600">{c.phone}</td>
                                 <td className="px-5 py-4 text-sm text-gray-500 max-w-[200px] truncate">{c.address}</td>
-                                <td className="px-5 py-4">
-                                    <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold">{c.totalOrders}</span>
-                                </td>
+                                <td className="px-5 py-4"><span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold">{c.totalOrders}</span></td>
                                 <td className="px-5 py-4 text-sm text-gray-500">{c.lastVisit}</td>
                                 <td className="px-5 py-4">
                                     <div className="flex items-center gap-1">
@@ -1015,8 +1165,7 @@ function ServicesPage({ services, onAdd, onEdit, onDelete }: {
                     </div>
                 </div>
                 <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
-                    <Plus size={15} />
-                    Tambah Layanan
+                    <Plus size={15} /> Tambah Layanan
                 </button>
             </div>
 
@@ -1035,25 +1184,19 @@ function ServicesPage({ services, onAdd, onEdit, onDelete }: {
                                 <td className="px-5 py-4 text-sm text-gray-400 font-medium">{i + 1}</td>
                                 <td className="px-5 py-4">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center">
-                                            <Scissors size={13} className="text-blue-500" />
-                                        </div>
+                                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center"><Scissors size={13} className="text-blue-500" /></div>
                                         <span className="text-sm font-semibold text-gray-900">{s.name}</span>
                                     </div>
                                 </td>
-                                <td className="px-5 py-4">
-                                    <span className="text-sm font-bold text-gray-900">{fmt(s.price)}</span>
-                                </td>
+                                <td className="px-5 py-4"><span className="text-sm font-bold text-gray-900">{fmt(s.price)}</span></td>
                                 <td className="px-5 py-4">
                                     <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                                        <Clock size={13} className="text-gray-400" />
-                                        {s.estimatedDays} hari kerja
+                                        <Clock size={13} className="text-gray-400" /> {s.estimatedDays} hari kerja
                                     </div>
                                 </td>
                                 <td className="px-5 py-4">
                                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${s.status === "Aktif" ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-400"}`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${s.status === "Aktif" ? "bg-green-500" : "bg-gray-300"}`} />
-                                        {s.status}
+                                        <span className={`w-1.5 h-1.5 rounded-full ${s.status === "Aktif" ? "bg-green-500" : "bg-gray-300"}`} /> {s.status}
                                     </span>
                                 </td>
                                 <td className="px-5 py-4">
@@ -1085,9 +1228,7 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete, onLoadDetail 
 }) {
     const [activeTab, setActiveTab] = useState("Semua");
     const [search, setSearch] = useState("");
-
     const tabs = ["Semua", "Menunggu", "Diproses", "Finishing", "Selesai", "Sudah Diambil"];
-
     const filtered = orders.filter(o => {
         const matchTab = activeTab === "Semua" || o.status === activeTab;
         const matchSearch = o.invoice.toLowerCase().includes(search.toLowerCase()) || o.customer.toLowerCase().includes(search.toLowerCase());
@@ -1099,20 +1240,10 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete, onLoadDetail 
             <div className="flex items-center gap-3">
                 <div className="relative flex-1 max-w-sm">
                     <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        placeholder="Cari invoice atau nama pelanggan..."
-                        className={searchInputClass}
-                    />
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari invoice atau nama pelanggan..." className={searchInputClass} />
                 </div>
-                <button
-                    onClick={() => setPage("new-transaction")}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors ml-auto"
-                >
-                    <Plus size={15} />
-                    Pesanan Baru
+                <button onClick={() => setPage("new-transaction")} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors ml-auto">
+                    <Plus size={15} /> Pesanan Baru
                 </button>
             </div>
 
@@ -1120,15 +1251,10 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete, onLoadDetail 
                 {tabs.map(t => {
                     const count = t === "Semua" ? orders.length : orders.filter(o => o.status === t).length;
                     return (
-                        <button
-                            key={t}
-                            onClick={() => setActiveTab(t)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${activeTab === t ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-                        >
+                        <button key={t} onClick={() => setActiveTab(t)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${activeTab === t ? "bg-blue-600 text-white shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
                             {t}
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === t ? "bg-blue-500 text-blue-100" : "bg-gray-100 text-gray-400"}`}>
-                                {count}
-                            </span>
+                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${activeTab === t ? "bg-blue-500 text-blue-100" : "bg-gray-100 text-gray-400"}`}>{count}</span>
                         </button>
                     );
                 })}
@@ -1155,18 +1281,8 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete, onLoadDetail 
                                 <td className="px-5 py-3.5 text-sm font-bold text-gray-900">{fmt(o.price - o.discount)}</td>
                                 <td className="px-5 py-3.5" onClick={e => e.stopPropagation()}>
                                     <div className="flex items-center gap-1">
-                                        <button
-                                            onClick={() => { setSelectedOrder(o); onLoadDetail?.(o.id); setPage("order-detail"); }}
-                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                        >
-                                            <Eye size={14} />
-                                        </button>
-                                        <button
-                                            onClick={() => onDelete(o)}
-                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
+                                        <button onClick={() => { setSelectedOrder(o); onLoadDetail?.(o.id); setPage("order-detail"); }} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Eye size={14} /></button>
+                                        <button onClick={() => onDelete(o)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={14} /></button>
                                     </div>
                                 </td>
                             </tr>
@@ -1174,9 +1290,7 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete, onLoadDetail 
                     </tbody>
                 </table>
                 {filtered.length === 0 && (
-                    <div className="py-16 text-center">
-                        <p className="text-gray-400 text-sm">Tidak ada pesanan ditemukan.</p>
-                    </div>
+                    <div className="py-16 text-center"><p className="text-gray-400 text-sm">Tidak ada pesanan ditemukan.</p></div>
                 )}
             </div>
         </div>
@@ -1200,7 +1314,7 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
     onCreate: (data: any) => Promise<void>;
 }) {
     const [customerId, setCustomerId] = useState("");
-    const [deadline, setDeadline] = useState(new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10));
+    const [deadline, setDeadline] = useState(new Date().toISOString().slice(0, 10));
     const [notes, setNotes] = useState("");
     const [discount, setDiscount] = useState(0);
     const [dp, setDp] = useState(0);
@@ -1211,25 +1325,15 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
 
     const cust = customers.find(c => String(c.id) === String(customerId));
     const activeServices = services.filter(s => s.status === "Aktif");
-
     const subtotal = items.reduce((sum, item) => {
         const svc = services.find(s => String(s.id) === String(item.serviceId));
         return sum + (svc ? svc.price * item.qty : 0);
     }, 0);
-
     const total = Math.max(0, subtotal - discount);
     const remaining = Math.max(0, total - dp);
 
-    const addItem = () => {
-        setItems([...items, { id: Date.now().toString(), clothingType: "", serviceId: "", qty: 1, price: 0 }]);
-    };
-
-    const removeItem = (id: string) => {
-        if (items.length > 1) {
-            setItems(items.filter(item => item.id !== id));
-        }
-    };
-
+    const addItem = () => setItems([...items, { id: Date.now().toString(), clothingType: "", serviceId: "", qty: 1, price: 0 }]);
+    const removeItem = (id: string) => { if (items.length > 1) setItems(items.filter(item => item.id !== id)); };
     const updateItem = (id: string, field: keyof OrderItemForm, value: string | number) => {
         setItems(items.map(item => {
             if (item.id === id) {
@@ -1245,44 +1349,20 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
     };
 
     const handleSave = async () => {
-        if (!customerId) {
-            alert("Pilih pelanggan terlebih dahulu.");
-            return;
-        }
-
+        if (!customerId) { alert("Pilih pelanggan terlebih dahulu."); return; }
         const validItems = items.filter(item => item.clothingType && item.serviceId);
-        if (validItems.length === 0) {
-            alert("Tambahkan minimal satu item pesanan.");
-            return;
-        }
-
+        if (validItems.length === 0) { alert("Tambahkan minimal satu item pesanan."); return; }
         const itemsWithNames = validItems.map(item => {
             const svc = services.find(s => String(s.id) === String(item.serviceId));
-            return {
-                item_name: svc?.name || "",
-                category: item.clothingType,
-                price: item.price,
-                quantity: item.qty,
-            };
+            return { item_name: svc?.name || "", category: item.clothingType, price: item.price, quantity: item.qty };
         });
-
         setSaving(true);
         try {
-            await onCreate({
-                customer_id: Number(customerId),
-                order_date: new Date().toISOString().slice(0, 10),
-                deadline,
-                notes,
-                discount,
-                down_payment: dp,
-                items: itemsWithNames,
-            });
+            await onCreate({ customer_id: Number(customerId), order_date: new Date().toISOString().slice(0, 10), deadline, notes, discount, down_payment: dp, items: itemsWithNames });
             setPage("orders");
         } catch (e: any) {
             alert("Gagal menyimpan: " + (e?.message || "terjadi kesalahan"));
-        } finally {
-            setSaving(false);
-        }
+        } finally { setSaving(false); }
     };
 
     return (
@@ -1290,16 +1370,13 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
             <div className="col-span-2 space-y-4">
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2.5">
-                        <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">1</span>
-                        Data Pelanggan
+                        <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">1</span> Data Pelanggan
                     </h3>
                     <div className="space-y-4">
                         <InputField label="Pilih Pelanggan">
                             <select value={customerId} onChange={e => setCustomerId(e.target.value)} className={inputClass}>
                                 <option value="">-- Pilih pelanggan yang sudah terdaftar --</option>
-                                {customers.map(c => (
-                                    <option key={c.id} value={c.id}>{c.name} ({c.phone})</option>
-                                ))}
+                                {customers.map(c => (<option key={c.id} value={c.id}>{c.name} ({c.phone})</option>))}
                             </select>
                         </InputField>
                         {cust && (
@@ -1314,75 +1391,32 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="font-bold text-gray-900 flex items-center gap-2.5">
-                            <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">2</span>
-                            Data Pesanan
+                            <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">2</span> Data Pesanan
                         </h3>
-                        <button
-                            onClick={addItem}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 transition-colors"
-                        >
-                            <Plus size={13} />
-                            Tambah Item
+                        <button onClick={addItem} className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 transition-colors">
+                            <Plus size={13} /> Tambah Item
                         </button>
                     </div>
-
                     <div className="space-y-3">
                         {items.map((item, index) => (
                             <div key={item.id} className="border border-gray-200 rounded-xl p-4 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-semibold text-gray-700">Item #{index + 1}</span>
                                     {items.length > 1 && (
-                                        <button
-                                            onClick={() => removeItem(item.id)}
-                                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                            title="Hapus item"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
+                                        <button onClick={() => removeItem(item.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Hapus item"><Trash2 size={14} /></button>
                                     )}
                                 </div>
-
                                 <div className="grid grid-cols-2 gap-3">
-                                    <InputField label="Jenis Pakaian">
-                                        <input
-                                            type="text"
-                                            value={item.clothingType}
-                                            onChange={e => updateItem(item.id, "clothingType", e.target.value)}
-                                            placeholder="Contoh: Celana Jeans, Kemeja..."
-                                            className={inputClass}
-                                        />
-                                    </InputField>
-                                    <InputField label="Jumlah (pcs)">
-                                        <input
-                                            type="number"
-                                            value={item.qty}
-                                            onChange={e => updateItem(item.id, "qty", Math.max(1, Number(e.target.value)))}
-                                            min={1}
-                                            className={inputClass}
-                                        />
-                                    </InputField>
+                                    <InputField label="Jenis Pakaian"><input type="text" value={item.clothingType} onChange={e => updateItem(item.id, "clothingType", e.target.value)} placeholder="Contoh: Celana Jeans, Kemeja..." className={inputClass} /></InputField>
+                                    <InputField label="Jumlah (pcs)"><input type="number" value={item.qty} onChange={e => updateItem(item.id, "qty", Math.max(1, Number(e.target.value)))} min={1} className={inputClass} /></InputField>
                                     <InputField label="Jenis Layanan">
-                                        <select
-                                            value={item.serviceId}
-                                            onChange={e => updateItem(item.id, "serviceId", e.target.value)}
-                                            className={inputClass}
-                                        >
+                                        <select value={item.serviceId} onChange={e => updateItem(item.id, "serviceId", e.target.value)} className={inputClass}>
                                             <option value="">-- Pilih layanan --</option>
-                                            {activeServices.map(s => (
-                                                <option key={s.id} value={s.id}>{s.name} — {fmt(s.price)}</option>
-                                            ))}
+                                            {activeServices.map(s => (<option key={s.id} value={s.id}>{s.name} — {fmt(s.price)}</option>))}
                                         </select>
                                     </InputField>
-                                    <InputField label="Harga Satuan">
-                                        <input
-                                            type="text"
-                                            value={item.price ? fmt(item.price) : ""}
-                                            readOnly
-                                            className={readonlyClass}
-                                        />
-                                    </InputField>
+                                    <InputField label="Harga Satuan"><input type="text" value={item.price ? fmt(item.price) : ""} readOnly className={readonlyClass} /></InputField>
                                 </div>
-
                                 {item.serviceId && (
                                     <div className="text-sm text-gray-600 bg-gray-50 rounded-lg p-2">
                                         <span className="text-gray-500">Subtotal item:</span>
@@ -1392,27 +1426,11 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                             </div>
                         ))}
                     </div>
-
                     <div className="mt-4">
-                        <InputField label="Deadline">
-                            <input
-                                type="date"
-                                value={deadline}
-                                onChange={e => setDeadline(e.target.value)}
-                                className={inputClass}
-                            />
-                        </InputField>
+                        <InputField label="Deadline"><input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} className={inputClass} /></InputField>
                     </div>
                     <div className="mt-3">
-                        <InputField label="Catatan">
-                            <textarea
-                                value={notes}
-                                onChange={e => setNotes(e.target.value)}
-                                placeholder="Catatan khusus untuk pesanan ini..."
-                                rows={2}
-                                className={`${inputClass} resize-none`}
-                            />
-                        </InputField>
+                        <InputField label="Catatan"><textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Catatan khusus untuk pesanan ini..." rows={2} className={`${inputClass} resize-none`} /></InputField>
                     </div>
                 </div>
             </div>
@@ -1420,57 +1438,28 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
             <div className="space-y-4">
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2.5">
-                        <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">3</span>
-                        Ringkasan
+                        <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">3</span> Ringkasan
                     </h3>
                     <div className="space-y-3">
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Subtotal ({items.length} item)</span>
                             <span className="font-semibold">{fmt(subtotal)}</span>
                         </div>
-                        <InputField label="Diskon">
-                            <input
-                                type="number"
-                                value={discount}
-                                onChange={e => setDiscount(Math.max(0, Number(e.target.value)))}
-                                className={inputClass}
-                            />
-                        </InputField>
+                        <InputField label="Diskon"><input type="number" value={discount} onChange={e => setDiscount(Math.max(0, Number(e.target.value)))} className={inputClass} /></InputField>
                         <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-100">
-                            <span>Total</span>
-                            <span>{fmt(total)}</span>
+                            <span>Total</span><span>{fmt(total)}</span>
                         </div>
-                        <InputField label="Uang Muka (DP)">
-                            <input
-                                type="number"
-                                value={dp}
-                                onChange={e => setDp(Math.max(0, Number(e.target.value)))}
-                                className={inputClass}
-                            />
-                        </InputField>
+                        <InputField label="Uang Muka (DP)"><input type="number" value={dp} onChange={e => setDp(Math.max(0, Number(e.target.value)))} className={inputClass} /></InputField>
                         <div className="flex justify-between text-sm">
                             <span className="text-gray-500">Sisa Pembayaran</span>
-                            <span className={`font-bold ${remaining > 0 ? "text-red-500" : "text-green-600"}`}>
-                                {remaining > 0 ? fmt(remaining) : "LUNAS"}
-                            </span>
+                            <span className={`font-bold ${remaining > 0 ? "text-red-500" : "text-green-600"}`}>{remaining > 0 ? fmt(remaining) : "LUNAS"}</span>
                         </div>
                     </div>
                 </div>
-
                 <div className="flex gap-3">
-                    <button
-                        onClick={() => setPage("orders")}
-                        className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                        Batal
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
-                    >
-                        <Save size={14} />
-                        {saving ? "Menyimpan..." : "Simpan"}
+                    <button onClick={() => setPage("orders")} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                    <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
+                        <Save size={14} /> {saving ? "Menyimpan..." : "Simpan"}
                     </button>
                 </div>
             </div>
@@ -1496,14 +1485,9 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
 
     return (
         <div className="max-w-3xl mx-auto space-y-4">
-            <button
-                onClick={() => setPage("orders")}
-                className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors"
-            >
-                <ChevronRight size={14} className="rotate-180" />
-                Kembali ke Pesanan
+            <button onClick={() => setPage("orders")} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                <ChevronRight size={14} className="rotate-180" /> Kembali ke Pesanan
             </button>
-
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <div className="flex items-start justify-between mb-6">
                     <div>
@@ -1514,67 +1498,35 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
                         <p className="text-sm text-gray-500">Dibuat pada {order.createdAt}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button
-                            onClick={onPay}
-                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                            <Banknote size={14} />
-                            Bayar
-                        </button>
-                        <button
-                            onClick={setShowReceipt.bind(null, true) as any}
-                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                            <Printer size={14} />
-                            Nota
-                        </button>
+                        <button onClick={onPay} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"><Banknote size={14} /> Bayar</button>
+                        <button onClick={setShowReceipt.bind(null, true) as any} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"><Printer size={14} /> Nota</button>
                         {order.status === "Selesai" && (
-                            <button
-                                onClick={setShowWhatsApp.bind(null, true) as any}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold hover:bg-green-600 transition-colors"
-                            >
-                                <MessageCircle size={14} />
-                                WhatsApp
-                            </button>
+                            <button onClick={setShowWhatsApp.bind(null, true) as any} className="flex items-center gap-1.5 px-3 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold hover:bg-green-600 transition-colors"><MessageCircle size={14} /> WhatsApp</button>
                         )}
                     </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-3">
                         <h3 className="text-sm font-bold text-gray-900 mb-2">Informasi Pelanggan</h3>
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                <User size={18} className="text-blue-600" />
-                            </div>
-                            <div>
-                                <p className="font-semibold text-gray-900">{order.customer}</p>
-                                <p className="text-sm text-gray-500">{order.phone}</p>
-                            </div>
+                            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center"><User size={18} className="text-blue-600" /></div>
+                            <div><p className="font-semibold text-gray-900">{order.customer}</p><p className="text-sm text-gray-500">{order.phone}</p></div>
                         </div>
                     </div>
                     <div className="space-y-3">
                         <h3 className="text-sm font-bold text-gray-900 mb-2">Informasi Pesanan</h3>
                         <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Deadline</span>
-                                <span className="font-medium">{order.deadline}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Total Item</span>
-                                <span className="font-medium">{orderItems.length} jenis pakaian</span>
-                            </div>
+                            <div className="flex justify-between"><span className="text-gray-500">Deadline</span><span className="font-medium">{order.deadline}</span></div>
+                            <div className="flex justify-between"><span className="text-gray-500">Total Item</span><span className="font-medium">{orderItems.length} jenis pakaian</span></div>
                         </div>
                     </div>
                 </div>
-
                 {order.notes && (
                     <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl p-3.5">
                         <p className="text-xs font-semibold text-amber-700 mb-1">Catatan</p>
                         <p className="text-sm text-amber-800">{order.notes}</p>
                     </div>
                 )}
-
                 {orderItems.length > 0 && (
                     <div className="mt-6 pt-4 border-t border-gray-100">
                         <h3 className="text-sm font-bold text-gray-900 mb-3">Daftar Item Pesanan</h3>
@@ -1584,35 +1536,17 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                                                    Item #{index + 1}
-                                                </span>
-                                                <span className="text-sm font-semibold text-gray-900">
-                                                    {item.item_name}
-                                                </span>
+                                                <span className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">Item #{index + 1}</span>
+                                                <span className="text-sm font-semibold text-gray-900">{item.item_name}</span>
                                             </div>
                                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mt-2">
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">Jenis:</span>
-                                                    <span className="text-gray-700 font-medium">{item.category}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">Jumlah:</span>
-                                                    <span className="text-gray-700 font-medium">{item.quantity} pcs</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">Harga Satuan:</span>
-                                                    <span className="text-gray-700 font-medium">{fmt(item.price)}</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-500">Subtotal:</span>
-                                                    <span className="text-gray-900 font-bold">{fmt(item.price * item.quantity)}</span>
-                                                </div>
+                                                <div className="flex justify-between"><span className="text-gray-500">Jenis:</span><span className="text-gray-700 font-medium">{item.category}</span></div>
+                                                <div className="flex justify-between"><span className="text-gray-500">Jumlah:</span><span className="text-gray-700 font-medium">{item.quantity} pcs</span></div>
+                                                <div className="flex justify-between"><span className="text-gray-500">Harga Satuan:</span><span className="text-gray-700 font-medium">{fmt(item.price)}</span></div>
+                                                <div className="flex justify-between"><span className="text-gray-500">Subtotal:</span><span className="text-gray-900 font-bold">{fmt(item.price * item.quantity)}</span></div>
                                             </div>
                                             {item.notes && (
-                                                <div className="mt-2 text-xs text-gray-600 bg-white rounded-lg p-2">
-                                                    <span className="text-gray-500">Catatan:</span> {item.notes}
-                                                </div>
+                                                <div className="mt-2 text-xs text-gray-600 bg-white rounded-lg p-2"><span className="text-gray-500">Catatan:</span> {item.notes}</div>
                                             )}
                                         </div>
                                     </div>
@@ -1621,43 +1555,22 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
                         </div>
                     </div>
                 )}
-
                 <div className="mt-6 pt-4 border-t border-gray-100">
                     <h3 className="text-sm font-bold text-gray-900 mb-3">Rincian Pembayaran</h3>
                     <div className="space-y-2 text-sm max-w-xs">
-                        <div className="flex justify-between">
-                            <span className="text-gray-500">Harga</span>
-                            <span>{fmt(order.price)}</span>
-                        </div>
-                        {order.discount > 0 && (
-                            <div className="flex justify-between text-red-500">
-                                <span>Diskon</span>
-                                <span>-{fmt(order.discount)}</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-gray-100">
-                            <span>Total</span>
-                            <span>{fmt(total)}</span>
-                        </div>
-                        <div className="flex justify-between text-green-600">
-                            <span>DP Dibayar</span>
-                            <span>{fmt(order.dp)}</span>
-                        </div>
+                        <div className="flex justify-between"><span className="text-gray-500">Harga</span><span>{fmt(order.price)}</span></div>
+                        {order.discount > 0 && <div className="flex justify-between text-red-500"><span>Diskon</span><span>-{fmt(order.discount)}</span></div>}
+                        <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-gray-100"><span>Total</span><span>{fmt(total)}</span></div>
+                        <div className="flex justify-between text-green-600"><span>DP Dibayar</span><span>{fmt(order.dp)}</span></div>
                         <div className={`flex justify-between font-bold pt-2 border-t border-gray-100 ${remaining > 0 ? "text-red-500" : "text-green-600"}`}>
-                            <span>Sisa</span>
-                            <span>{remaining > 0 ? fmt(remaining) : "LUNAS"}</span>
+                            <span>Sisa</span><span>{remaining > 0 ? fmt(remaining) : "LUNAS"}</span>
                         </div>
                     </div>
                 </div>
-
                 {nextStatus && (
                     <div className="mt-6">
-                        <button
-                            onClick={onAdvanceStatus}
-                            className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                        >
-                            <CheckCircle2 size={15} />
-                            Tandai sebagai: {nextStatus}
+                        <button onClick={onAdvanceStatus} className="w-full px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                            <CheckCircle2 size={15} /> Tandai sebagai: {nextStatus}
                         </button>
                     </div>
                 )}
@@ -1675,7 +1588,6 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
     onDelete: (e: Expense) => void;
 }) {
     const total = expenses.reduce((s, e) => s + e.amount, 0);
-
     const byCategory: Record<string, number> = {};
     expenses.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + e.amount; });
     const EXPENSE_PIE_DATA = Object.entries(byCategory).map(([name, value]) => ({ name, value }));
@@ -1688,11 +1600,9 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
                     <span className="font-bold text-red-500">{fmt(total)}</span>
                 </div>
                 <button onClick={onAdd} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
-                    <Plus size={15} />
-                    Tambah Pengeluaran
+                    <Plus size={15} /> Tambah Pengeluaran
                 </button>
             </div>
-
             <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                     <table className="w-full">
@@ -1707,9 +1617,7 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
                             {expenses.map(e => (
                                 <tr key={e.id} className="hover:bg-gray-50/60 transition-colors">
                                     <td className="px-5 py-3.5 text-sm text-gray-600">{e.date}</td>
-                                    <td className="px-5 py-3.5">
-                                        <span className="px-2.5 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold">{e.category}</span>
-                                    </td>
+                                    <td className="px-5 py-3.5"><span className="px-2.5 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold">{e.category}</span></td>
                                     <td className="px-5 py-3.5 text-sm text-gray-600">{e.description}</td>
                                     <td className="px-5 py-3.5 text-sm font-bold text-red-500">{fmt(e.amount)}</td>
                                     <td className="px-5 py-3.5">
@@ -1726,7 +1634,6 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
                         </tbody>
                     </table>
                 </div>
-
                 <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <h3 className="font-bold text-gray-900 mb-0.5">Kategori Pengeluaran</h3>
                     <p className="text-xs text-gray-400 mb-4">Semua periode</p>
@@ -1736,18 +1643,8 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
                         <>
                             <ResponsiveContainer width="100%" height={200}>
                                 <PieChart>
-                                    <Pie
-                                        data={EXPENSE_PIE_DATA}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={45}
-                                        outerRadius={80}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                    >
-                                        {EXPENSE_PIE_DATA.map((_, index) => (
-                                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                                        ))}
+                                    <Pie data={EXPENSE_PIE_DATA} cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={3} dataKey="value">
+                                        {EXPENSE_PIE_DATA.map((_, index) => (<Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />))}
                                     </Pie>
                                     <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #E2E8F0" }} />
                                 </PieChart>
@@ -1755,10 +1652,7 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
                             <div className="space-y-1.5 mt-2">
                                 {EXPENSE_PIE_DATA.map((d, i) => (
                                     <div key={d.name} className="flex items-center justify-between text-xs">
-                                        <span className="flex items-center gap-1.5">
-                                            <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: PIE_COLORS[i] }} />
-                                            {d.name}
-                                        </span>
+                                        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: PIE_COLORS[i] }} />{d.name}</span>
                                         <span className="font-semibold">{fmt(d.value)}</span>
                                     </div>
                                 ))}
@@ -1775,46 +1669,87 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
 
 function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[] }) {
     const now = new Date();
-    const monthLabels: string[] = [];
-    for (let i = 5; i >= 0; i--) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        monthLabels.push(d.toLocaleDateString("id-ID", { month: "short" }));
-    }
-    const REVENUE_DATA = monthLabels.map((m, idx) => {
-        const d = new Date(now.getFullYear(), now.getMonth() - (5 - idx), 1);
-        const prefix = d.toISOString().slice(0, 7);
-        const pendapatan = orders.filter(o => o.createdAt.startsWith(prefix)).reduce((s, o) => s + (o.price - o.discount), 0);
-        const pengeluaran = expenses.filter(e => e.date.startsWith(prefix)).reduce((s, e) => s + e.amount, 0);
-        return { month: m, pendapatan, pengeluaran };
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const weekLabels = ["Minggu 1 (1-7)", "Minggu 2 (8-14)", "Minggu 3 (15-21)", "Minggu 4 (22-akhir)"];
+
+    const REVENUE_DATA = weekLabels.map((label, weekNum) => {
+        const startDay = weekNum * 7 + 1;
+        const endDay = weekNum === 3 ? new Date(currentYear, currentMonth + 1, 0).getDate() : (weekNum + 1) * 7;
+        const pendapatan = orders.filter(o => {
+            if (!o.createdAt) return false;
+            const [year, month, day] = o.createdAt.split('-').map(Number);
+            return year === currentYear && month - 1 === currentMonth && day >= startDay && day <= endDay;
+        }).reduce((s, o) => s + (o.price - o.discount), 0);
+        const pengeluaran = expenses.filter(e => {
+            if (!e.date) return false;
+            const [year, month, day] = e.date.split('-').map(Number);
+            return year === currentYear && month - 1 === currentMonth && day >= startDay && day <= endDay;
+        }).reduce((s, e) => s + e.amount, 0);
+        return { month: label, pendapatan, pengeluaran };
     });
 
     const totalPendapatan = REVENUE_DATA.reduce((s, d) => s + d.pendapatan, 0);
     const totalPengeluaran = REVENUE_DATA.reduce((s, d) => s + d.pengeluaran, 0);
-
+    const labaBersih = totalPendapatan - totalPengeluaran;
     const counts: Record<string, number> = {};
     orders.forEach(o => { counts[o.service] = (counts[o.service] || 0) + 1; });
     const TOP_SERVICES_DATA = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([name, jumlah]) => ({ name, jumlah }));
-
     const byCategory: Record<string, number> = {};
     expenses.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + e.amount; });
     const EXPENSE_PIE_DATA = Object.entries(byCategory).map(([name, value]) => ({ name, value }));
+
+    const exportToExcel = async () => {
+        const XLSX = await import('xlsx');
+        const orderRows = orders.map(o => ({ 'Invoice': o.invoice, 'Pelanggan': o.customer, 'No. WhatsApp': o.phone, 'Jenis Pakaian': o.clothingType, 'Layanan': o.service, 'Status': o.status, 'Tanggal': o.createdAt, 'Deadline': o.deadline, 'Harga': o.price, 'Diskon': o.discount, 'Total': o.price - o.discount, 'DP': o.dp, 'Sisa': (o.price - o.discount) - o.dp, 'Catatan': o.notes }));
+        const expenseRows = expenses.map(e => ({ 'Tanggal': e.date, 'Kategori': e.category, 'Deskripsi': e.description, 'Jumlah': e.amount }));
+        const revenueRows = REVENUE_DATA.map(d => ({ 'Periode': d.month, 'Pendapatan': d.pendapatan, 'Pengeluaran': d.pengeluaran, 'Laba Bersih': d.pendapatan - d.pengeluaran }));
+        const serviceRows = TOP_SERVICES_DATA.map((d, i) => ({ 'No': i + 1, 'Layanan': d.name, 'Jumlah Pesanan': d.jumlah }));
+        const categoryRows = EXPENSE_PIE_DATA.map(d => ({ 'Kategori': d.name, 'Total': d.value }));
+        const wb = XLSX.utils.book_new();
+        const summaryData = [
+            ['LAPORAN KEUANGAN A.Y.A TAILOR'], [''], ['Periode', `${new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`], [''],
+            ['Ringkasan Keuangan'], ['Total Pendapatan', totalPendapatan], ['Total Pengeluaran', totalPengeluaran], ['Laba Bersih', labaBersih], ['Total Pesanan', orders.length], [''],
+            ['Pendapatan per Minggu'], ['Periode', 'Pendapatan', 'Pengeluaran', 'Laba Bersih'], ...revenueRows.map(r => [r.Periode, r.Pendapatan, r.Pengeluaran, r['Laba Bersih']]),
+        ];
+        const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+        XLSX.utils.book_append_sheet(wb, ws1, 'Ringkasan');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(orderRows), 'Pesanan');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(expenseRows), 'Pengeluaran');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(serviceRows), 'Layanan Terlaris');
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(categoryRows), 'Kategori Pengeluaran');
+        [ws1].forEach(ws => {
+            if (ws['!ref']) {
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                const cols: any[] = [];
+                for (let c = range.s.c; c <= range.e.c; c++) {
+                    let maxLen = 10;
+                    for (let r = range.s.r; r <= range.e.r; r++) {
+                        const cell = ws[XLSX.utils.encode_cell({ r, c })];
+                        if (cell && cell.v) { const len = String(cell.v).length; if (len > maxLen) maxLen = len; }
+                    }
+                    cols.push({ wch: Math.min(maxLen + 3, 40) });
+                }
+                ws['!cols'] = cols;
+            }
+        });
+        XLSX.writeFile(wb, `Laporan_Keuangan_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    };
 
     return (
         <div className="space-y-4">
             <div className="grid grid-cols-4 gap-4">
                 {[
-                    { label: "Total Pendapatan", value: fmt(totalPendapatan), sub: "6 bulan terakhir", color: "bg-blue-500", icon: TrendingUp },
-                    { label: "Total Pengeluaran", value: fmt(totalPengeluaran), sub: "6 bulan terakhir", color: "bg-red-400", icon: TrendingDown },
-                    { label: "Total Pesanan", value: String(orders.length), sub: "Semua periode", color: "bg-green-500", icon: ShoppingBag },
-                    { label: "Rata-rata Pesanan", value: orders.length ? (totalPendapatan / orders.length).toFixed(0) : "0", sub: "Per pesanan", color: "bg-purple-500", icon: BarChart2 },
+                    { label: "Total Pendapatan", value: fmt(totalPendapatan), sub: `Bulan ${new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`, color: "bg-blue-500", icon: TrendingUp },
+                    { label: "Total Pengeluaran", value: fmt(totalPengeluaran), sub: `Bulan ${new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`, color: "bg-red-400", icon: TrendingDown },
+                    { label: "Laba Bersih", value: fmt(labaBersih), sub: labaBersih >= 0 ? "Untung" : "Rugi", color: labaBersih >= 0 ? "bg-green-500" : "bg-red-500", icon: Wallet },
+                    { label: "Total Pesanan", value: String(orders.length), sub: "Semua periode", color: "bg-purple-500", icon: ShoppingBag },
                 ].map(s => {
                     const Icon = s.icon;
                     return (
                         <div key={s.label} className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                             <div className="flex items-start justify-between mb-3">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.color}`}>
-                                    <Icon size={18} className="text-white" />
-                                </div>
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.color}`}><Icon size={18} className="text-white" /></div>
                             </div>
                             <p className="text-2xl font-bold text-gray-900 mb-0.5 leading-none">{s.value}</p>
                             <p className="text-sm font-semibold text-gray-700 mt-1.5">{s.label}</p>
@@ -1823,12 +1758,11 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                     );
                 })}
             </div>
-
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h3 className="font-bold text-gray-900">Grafik Pendapatan Tahunan</h3>
-                        <p className="text-xs text-gray-400 mt-0.5">Pendapatan vs Pengeluaran</p>
+                        <h3 className="font-bold text-gray-900">Grafik Pendapatan & Pengeluaran</h3>
+                        <p className="text-xs text-gray-400 mt-0.5">Per minggu - {new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}</p>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />Pendapatan</span>
@@ -1838,28 +1772,18 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                 <ResponsiveContainer width="100%" height={300}>
                     <AreaChart data={REVENUE_DATA} margin={{ left: -10, right: 5 }}>
                         <defs>
-                            <linearGradient id="gRev2" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15} />
-                                <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                            </linearGradient>
-                            <linearGradient id="gExp2" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#F87171" stopOpacity={0.12} />
-                                <stop offset="95%" stopColor="#F87171" stopOpacity={0} />
-                            </linearGradient>
+                            <linearGradient id="gRev2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15} /><stop offset="95%" stopColor="#3B82F6" stopOpacity={0} /></linearGradient>
+                            <linearGradient id="gExp2" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#F87171" stopOpacity={0.12} /><stop offset="95%" stopColor="#F87171" stopOpacity={0} /></linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
                         <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#94A3B8" }} axisLine={false} tickLine={false} />
                         <YAxis tick={{ fontSize: 11, fill: "#94A3B8" }} axisLine={false} tickLine={false} tickFormatter={v => `${(v / 1000000).toFixed(1)}jt`} />
-                        <Tooltip
-                            formatter={(v: number, name: string) => [fmt(v), name === "pendapatan" ? "Pendapatan" : "Pengeluaran"]}
-                            contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
-                        />
+                        <Tooltip formatter={(v: number, name: string) => [fmt(v), name === "pendapatan" ? "Pendapatan" : "Pengeluaran"]} contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #E2E8F0", boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }} />
                         <Area type="monotone" dataKey="pendapatan" stroke="#3B82F6" strokeWidth={2.5} fill="url(#gRev2)" />
                         <Area type="monotone" dataKey="pengeluaran" stroke="#F87171" strokeWidth={2} fill="url(#gExp2)" />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
-
             <div className="grid grid-cols-3 gap-4">
                 <div className="col-span-2 bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                     <h3 className="font-bold text-gray-900 mb-4">Layanan Terlaris</h3>
@@ -1890,10 +1814,7 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                             <div className="space-y-1.5 mt-2">
                                 {EXPENSE_PIE_DATA.map((d, i) => (
                                     <div key={d.name} className="flex items-center justify-between text-xs">
-                                        <span className="flex items-center gap-1.5">
-                                            <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: PIE_COLORS[i] }} />
-                                            {d.name}
-                                        </span>
+                                        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: PIE_COLORS[i] }} />{d.name}</span>
                                         <span className="font-semibold">{fmt(d.value)}</span>
                                     </div>
                                 ))}
@@ -1902,24 +1823,21 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                     )}
                 </div>
             </div>
-
             <div className="flex gap-3">
-                <button className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
-                    <Download size={14} />
-                    Export Laporan
-                </button>
-                <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-                    <Printer size={14} />
-                    Cetak
+                <button onClick={exportToExcel} className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors">
+                    <Download size={14} /> Export ke Excel
                 </button>
             </div>
-        </div >
+        </div>
     );
 }
 
 // ─── Page: Settings ───────────────────────────────────────────────────────────
 
-function SettingsPage({ setToast }: { setToast: (t: { message: string; type: "success" | "error" } | null) => void }) {
+function SettingsPage({ setToast, refreshNotifications }: {
+    setToast: (t: { message: string; type: "success" | "error" } | null) => void;
+    refreshNotifications?: () => void;
+}) {
     const [storeName, setStoreName] = useState("A.Y.A Tailor");
     const [address, setAddress] = useState("Jl. Sudirman No. 45, Bandung");
     const [phone, setPhone] = useState("022-1234567");
@@ -1930,7 +1848,6 @@ function SettingsPage({ setToast }: { setToast: (t: { message: string; type: "su
     const [saving, setSaving] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // Load settings from API on mount
     useEffect(() => {
         const loadSettings = async () => {
             try {
@@ -1946,11 +1863,8 @@ function SettingsPage({ setToast }: { setToast: (t: { message: string; type: "su
                         setNotif3(data.notifications.stock_alert ?? false);
                     }
                 }
-            } catch (err) {
-                console.error('Failed to load settings:', err);
-            } finally {
-                setLoading(false);
-            }
+            } catch (err) { console.error('Failed to load settings:', err); }
+            finally { setLoading(false); }
         };
         loadSettings();
     }, []);
@@ -1958,23 +1872,11 @@ function SettingsPage({ setToast }: { setToast: (t: { message: string; type: "su
     const save = async () => {
         setSaving(true);
         try {
-            await api.updateSettings({
-                storeName,
-                address,
-                phone,
-                whatsapp: wa,
-                notifications: {
-                    order_complete: notif1,
-                    deadline_reminder: notif2,
-                    stock_alert: notif3,
-                }
-            });
-            setToast({ message: "Pengaturan berhasil disimpan!", type: "success" });
-        } catch (err: any) {
-            setToast({ message: "Gagal menyimpan: " + (err?.message || "terjadi kesalahan"), type: "error" });
-        } finally {
-            setSaving(false);
-        }
+            await api.updateSettings({ storeName, address, phone, whatsapp: wa, notifications: { order_complete: notif1, deadline_reminder: notif2, stock_alert: notif3 } });
+            setToast({ message: "Pengaturan berhasil diperbarui!", type: "success" });
+            refreshNotifications?.();
+        } catch (err: any) { setToast({ message: "Gagal menyimpan: " + (err?.message || "terjadi kesalahan"), type: "error" }); }
+        finally { setSaving(false); }
     };
 
     if (loading) {
@@ -2003,7 +1905,6 @@ function SettingsPage({ setToast }: { setToast: (t: { message: string; type: "su
                     </button>
                 </div>
             </div>
-
             <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
                 <h3 className="font-bold text-gray-900 mb-4">Pengaturan Notifikasi</h3>
                 <div className="space-y-3">
@@ -2039,28 +1940,18 @@ interface NotificationItem {
 }
 
 const NOTIF_ICONS: Record<string, any> = {
-    ShoppingBag: ShoppingBag,
-    Clock: Clock,
-    Scissors: Scissors,
-    CheckCircle2: CheckCircle2,
-    Package: Package,
-    Banknote: Banknote,
-    Calendar: Calendar,
-    Bell: Bell,
-    User: User,
-    Settings: SettingsIcon,
+    ShoppingBag: ShoppingBag, Clock: Clock, Scissors: Scissors, CheckCircle2: CheckCircle2,
+    Package: Package, Banknote: Banknote, Calendar: Calendar, Bell: Bell, User: User, Settings: SettingsIcon,
 };
 
 const NOTIF_COLORS: Record<string, string> = {
-    blue: "bg-blue-500",
-    amber: "bg-amber-500",
-    purple: "bg-purple-500",
-    green: "bg-green-500",
-    red: "bg-red-500",
-    slate: "bg-slate-500",
+    blue: "bg-blue-500", amber: "bg-amber-500", purple: "bg-purple-500", green: "bg-green-500", red: "bg-red-500", slate: "bg-slate-500",
 };
 
-function NotificationDropdown({ onNavigate }: { onNavigate: (type: string, id: string) => void }) {
+function NotificationDropdown({ onNavigate, refreshTrigger }: {
+    onNavigate: (type: string, id: string) => void;
+    refreshTrigger?: number;
+}) {
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -2071,81 +1962,40 @@ function NotificationDropdown({ onNavigate }: { onNavigate: (type: string, id: s
             const data = await api.getNotifications();
             setNotifications(data.notifications || []);
             setUnreadCount(data.unread_count || 0);
-        } catch (err) {
-            console.error('Failed to fetch notifications:', err);
-        }
+        } catch (err) { console.error('Failed to fetch notifications:', err); }
     }, []);
 
-    // Initial fetch
+    useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
+    useEffect(() => { const interval = setInterval(fetchNotifications, 10000); return () => clearInterval(interval); }, [fetchNotifications]);
+    useEffect(() => { if (refreshTrigger && refreshTrigger > 0) fetchNotifications(); }, [refreshTrigger, fetchNotifications]);
     useEffect(() => {
-        fetchNotifications();
-    }, [fetchNotifications]);
-
-    // Poll every 10 seconds for real-time updates
-    useEffect(() => {
-        const interval = setInterval(fetchNotifications, 10000);
-        return () => clearInterval(interval);
-    }, [fetchNotifications]);
-
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setOpen(false);
-            }
-        };
+        const handleClickOutside = (e: MouseEvent) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setOpen(false); };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const handleMarkAllRead = async () => {
-        try {
-            await api.markAllNotificationsRead();
-            setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-            setUnreadCount(0);
-        } catch (err) {
-            console.error('Failed to mark all as read:', err);
-        }
+        try { await api.markAllNotificationsRead(); setNotifications(prev => prev.map(n => ({ ...n, is_read: true }))); setUnreadCount(0); }
+        catch (err) { console.error('Failed to mark all as read:', err); }
     };
 
     const handleNotificationClick = async (notif: NotificationItem) => {
-        // Mark as read
         if (!notif.is_read) {
-            try {
-                await api.markNotificationRead(notif.id);
-                setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
-                setUnreadCount(prev => Math.max(0, prev - 1));
-            } catch (err) {
-                console.error('Failed to mark notification as read:', err);
-            }
+            try { await api.markNotificationRead(notif.id); setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n)); setUnreadCount(prev => Math.max(0, prev - 1)); }
+            catch (err) { console.error('Failed to mark notification as read:', err); }
         }
-
-        // Navigate if link exists
-        if (notif.link_type && notif.link_id) {
-            onNavigate(notif.link_type, notif.link_id);
-            setOpen(false);
-        }
+        if (notif.link_type && notif.link_id) { onNavigate(notif.link_type, notif.link_id); setOpen(false); }
     };
 
     const handleDelete = async (e: MouseEvent, id: number) => {
         e.stopPropagation();
-        try {
-            await api.deleteNotification(id);
-            setNotifications(prev => prev.filter(n => n.id !== id));
-            setUnreadCount(prev => Math.max(0, prev - 1));
-        } catch (err) {
-            console.error('Failed to delete notification:', err);
-        }
+        try { await api.deleteNotification(id); setNotifications(prev => prev.filter(n => n.id !== id)); setUnreadCount(prev => Math.max(0, prev - 1)); }
+        catch (err) { console.error('Failed to delete notification:', err); }
     };
 
     const handleClearAll = async () => {
-        try {
-            await api.clearAllNotifications();
-            setNotifications([]);
-            setUnreadCount(0);
-        } catch (err) {
-            console.error('Failed to clear notifications:', err);
-        }
+        try { await api.clearAllNotifications(); setNotifications([]); setUnreadCount(0); }
+        catch (err) { console.error('Failed to clear notifications:', err); }
     };
 
     const timeAgo = (dateStr: string) => {
@@ -2155,7 +2005,6 @@ function NotificationDropdown({ onNavigate }: { onNavigate: (type: string, id: s
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
-
         if (diffMins < 1) return 'Baru saja';
         if (diffMins < 60) return `${diffMins} menit lalu`;
         if (diffHours < 24) return `${diffHours} jam lalu`;
@@ -2165,10 +2014,7 @@ function NotificationDropdown({ onNavigate }: { onNavigate: (type: string, id: s
 
     return (
         <div className="relative" ref={dropdownRef}>
-            <button
-                onClick={() => setOpen(!open)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors relative"
-            >
+            <button onClick={() => setOpen(!open)} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors relative">
                 {unreadCount > 0 ? <BellRing size={18} /> : <Bell size={18} />}
                 {unreadCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center min-w-[18px] min-h-[18px]">
@@ -2176,78 +2022,37 @@ function NotificationDropdown({ onNavigate }: { onNavigate: (type: string, id: s
                     </span>
                 )}
             </button>
-
             {open && (
                 <div className="absolute right-0 top-full mt-2 w-[420px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-50">
-                    {/* Header */}
                     <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100">
                         <div>
                             <h3 className="font-bold text-gray-900 text-sm">Notifikasi</h3>
-                            <p className="text-xs text-gray-400 mt-0.5">
-                                {unreadCount > 0 ? `${unreadCount} belum dibaca` : 'Semua sudah dibaca'}
-                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5">{unreadCount > 0 ? `${unreadCount} belum dibaca` : 'Semua sudah dibaca'}</p>
                         </div>
                         <div className="flex items-center gap-1">
-                            {unreadCount > 0 && (
-                                <button
-                                    onClick={handleMarkAllRead}
-                                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                                >
-                                    <CheckCheck size={13} />
-                                    Baca Semua
-                                </button>
-                            )}
-                            {notifications.length > 0 && (
-                                <button
-                                    onClick={handleClearAll}
-                                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                >
-                                    <Trash size={13} />
-                                    Hapus
-                                </button>
-                            )}
+                            {unreadCount > 0 && <button onClick={handleMarkAllRead} className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><CheckCheck size={13} /> Baca Semua</button>}
+                            {notifications.length > 0 && <button onClick={handleClearAll} className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash size={13} /> Hapus</button>}
                         </div>
                     </div>
-
-                    {/* Notification List */}
                     <div className="max-h-[400px] overflow-y-auto">
                         {notifications.length === 0 ? (
-                            <div className="py-12 text-center">
-                                <BellOff size={32} className="mx-auto text-gray-200 mb-3" />
-                                <p className="text-sm text-gray-400">Tidak ada notifikasi</p>
-                            </div>
+                            <div className="py-12 text-center"><BellOff size={32} className="mx-auto text-gray-200 mb-3" /><p className="text-sm text-gray-400">Tidak ada notifikasi</p></div>
                         ) : (
                             notifications.map((notif) => {
                                 const IconComponent = NOTIF_ICONS[notif.icon || ''] || Bell;
                                 const colorClass = NOTIF_COLORS[notif.color || ''] || 'bg-blue-500';
-
                                 return (
-                                    <div
-                                        key={notif.id}
-                                        onClick={() => handleNotificationClick(notif)}
-                                        className={`flex items-start gap-3.5 px-5 py-3.5 cursor-pointer transition-all hover:bg-gray-50 border-b border-gray-50 last:border-0 ${!notif.is_read ? 'bg-blue-50/40' : ''}`}
-                                    >
-                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${colorClass}`}>
-                                            <IconComponent size={16} className="text-white" />
-                                        </div>
+                                    <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`flex items-start gap-3.5 px-5 py-3.5 cursor-pointer transition-all hover:bg-gray-50 border-b border-gray-50 last:border-0 ${!notif.is_read ? 'bg-blue-50/40' : ''}`}>
+                                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${colorClass}`}><IconComponent size={16} className="text-white" /></div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-start justify-between gap-2">
-                                                <p className={`text-sm leading-tight ${!notif.is_read ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
-                                                    {notif.title}
-                                                </p>
-                                                {!notif.is_read && (
-                                                    <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1.5" />
-                                                )}
+                                                <p className={`text-sm leading-tight ${!notif.is_read ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>{notif.title}</p>
+                                                {!notif.is_read && <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1.5" />}
                                             </div>
                                             <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{notif.message}</p>
                                             <div className="flex items-center justify-between mt-1.5">
                                                 <span className="text-[10px] text-gray-400">{timeAgo(notif.created_at)}</span>
-                                                <button
-                                                    onClick={(e) => handleDelete(e, notif.id)}
-                                                    className="p-0.5 text-gray-300 hover:text-red-500 transition-colors"
-                                                >
-                                                    <X size={11} />
-                                                </button>
+                                                <button onClick={(e) => handleDelete(e, notif.id)} className="p-0.5 text-gray-300 hover:text-red-500 transition-colors"><X size={11} /></button>
                                             </div>
                                         </div>
                                     </div>
@@ -2261,9 +2066,8 @@ function NotificationDropdown({ onNavigate }: { onNavigate: (type: string, id: s
     );
 }
 
-// ─── Main App ─────────────────────────────────────────────────────────────────
-
 // ─── Toast Component ─────────────────────────────────────────────────────────
+
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
     const [visible, setVisible] = useState(false);
     useEffect(() => {
@@ -2277,17 +2081,15 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
     return (
         <div className={`fixed top-5 right-5 z-[100] transition-all duration-300 ${visible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}>
             <div className={`flex items-center gap-3.5 bg-white border-l-4 ${border} border border-gray-100 rounded-xl shadow-lg px-5 py-3.5 min-w-[320px]`}>
-                <div className={`w-7 h-7 ${iconBg} rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0`}>
-                    {icon}
-                </div>
+                <div className={`w-7 h-7 ${iconBg} rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0`}>{icon}</div>
                 <p className="text-sm text-gray-800 font-medium flex-1">{message}</p>
-                <button onClick={() => { setVisible(false); setTimeout(onClose, 300); }} className="p-0.5 text-gray-300 hover:text-gray-500 transition-colors shrink-0">
-                    <X size={14} />
-                </button>
+                <button onClick={() => { setVisible(false); setTimeout(onClose, 300); }} className="p-0.5 text-gray-300 hover:text-gray-500 transition-colors shrink-0"><X size={14} /></button>
             </div>
         </div>
     );
 }
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
 
 export default function App() {
     const [page, setPage] = useState<Page>("login");
@@ -2306,7 +2108,6 @@ export default function App() {
     const [waSending, setWaSending] = useState(false);
     const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-    // Modal states
     const [customerModal, setCustomerModal] = useState<{ open: boolean; editing?: Customer }>({ open: false });
     const [serviceModal, setServiceModal] = useState<{ open: boolean; editing?: Service }>({ open: false });
     const [expenseModal, setExpenseModal] = useState<{ open: boolean; editing?: Expense }>({ open: false });
@@ -2316,24 +2117,14 @@ export default function App() {
     const loadAll = useCallback(async () => {
         setLoading(true);
         try {
-            const [c, o, s, e] = await Promise.all([
-                api.getCustomers(),
-                api.getOrders(),
-                api.getServices(),
-                api.getExpenses(),
-            ]);
-            setCustomers(c);
-            setOrders(o);
-            setServices(s);
-            setExpenses(e);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+            const [c, o, s, e] = await Promise.all([api.getCustomers(), api.getOrders(), api.getServices(), api.getExpenses()]);
+            setCustomers(c); setOrders(o); setServices(s); setExpenses(e);
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
     }, []);
 
     const [user, setUser] = useState<{ id: string | number; name: string; email: string } | null>(null);
+    const [notifRefreshKey, setNotifRefreshKey] = useState(0);
 
     const handleLogin = async (payload: { username: string; password: string }) => {
         try {
@@ -2341,100 +2132,56 @@ export default function App() {
             setUser(res.user);
             setPage("dashboard");
             loadAll();
-        } catch (e: any) {
-            alert(e?.message || "Login gagal");
-        }
+        } catch (e: any) { alert(e?.message || "Login gagal"); }
     };
 
-    // ── Customer handlers
     const saveCustomer = async (data: any) => {
         try {
-            if (customerModal.editing) {
-                await api.updateCustomer(customerModal.editing.id, data);
-                setToast({ message: "Pelanggan berhasil diperbarui!", type: "success" });
-            } else {
-                await api.createCustomer(data);
-                setToast({ message: "Pelanggan berhasil ditambahkan!", type: "success" });
-            }
-            setCustomerModal({ open: false });
-            await loadAll();
-        } catch (e: any) {
-            setToast({ message: e?.message || "Gagal menyimpan pelanggan. Periksa kembali data.", type: "error" });
-        }
+            if (customerModal.editing) { await api.updateCustomer(customerModal.editing.id, data); setToast({ message: "Pelanggan berhasil diperbarui!", type: "success" }); }
+            else { await api.createCustomer(data); setToast({ message: "Pelanggan berhasil ditambahkan!", type: "success" }); }
+            setCustomerModal({ open: false }); await loadAll();
+        } catch (e: any) { setToast({ message: e?.message || "Gagal menyimpan pelanggan. Periksa kembali data.", type: "error" }); }
     };
     const deleteCustomer = (c: Customer) => {
         setConfirm({
-            title: "Konfirmasi Hapus",
-            message: `Apakah Anda yakin ingin menghapus pelanggan "${c.name}"? Data yang dihapus tidak dapat dikembalikan.`,
+            title: "Konfirmasi Hapus", message: `Apakah Anda yakin ingin menghapus pelanggan "${c.name}"? Data yang dihapus tidak dapat dikembalikan.`,
             onConfirm: async () => { await api.deleteCustomer(c.id); setConfirm(null); await loadAll(); setToast({ message: "Pelanggan berhasil dihapus!", type: "success" }); },
         });
     };
 
-    // ── Service handlers
     const saveService = async (data: any) => {
         try {
-            if (serviceModal.editing) {
-                await api.updateService(serviceModal.editing.id, data);
-                setToast({ message: "Layanan berhasil diperbarui!", type: "success" });
-            } else {
-                await api.createService(data);
-                setToast({ message: "Layanan berhasil ditambahkan!", type: "success" });
-            }
-            setServiceModal({ open: false });
-            await loadAll();
-        } catch (e: any) {
-            setToast({ message: e?.message || "Gagal menyimpan layanan.", type: "error" });
-        }
+            if (serviceModal.editing) { await api.updateService(serviceModal.editing.id, data); setToast({ message: "Layanan berhasil diperbarui!", type: "success" }); }
+            else { await api.createService(data); setToast({ message: "Layanan berhasil ditambahkan!", type: "success" }); }
+            setServiceModal({ open: false }); await loadAll();
+        } catch (e: any) { setToast({ message: e?.message || "Gagal menyimpan layanan.", type: "error" }); }
     };
     const deleteService = (s: Service) => {
         setConfirm({
-            title: "Konfirmasi Hapus",
-            message: `Apakah Anda yakin ingin menghapus layanan "${s.name}"? Data yang dihapus tidak dapat dikembalikan.`,
+            title: "Konfirmasi Hapus", message: `Apakah Anda yakin ingin menghapus layanan "${s.name}"? Data yang dihapus tidak dapat dikembalikan.`,
             onConfirm: async () => { await api.deleteService(s.id); setConfirm(null); await loadAll(); setToast({ message: "Layanan berhasil dihapus!", type: "success" }); },
         });
     };
 
-    // ── Expense handlers
     const saveExpense = async (data: any) => {
         try {
-            if (expenseModal.editing) {
-                await api.updateExpense(expenseModal.editing.id, data);
-                setToast({ message: "Pengeluaran berhasil diperbarui!", type: "success" });
-            } else {
-                await api.createExpense(data);
-                setToast({ message: "Pengeluaran berhasil ditambahkan!", type: "success" });
-            }
-            setExpenseModal({ open: false });
-            await loadAll();
-        } catch (e: any) {
-            setToast({ message: e?.message || "Gagal menyimpan pengeluaran.", type: "error" });
-        }
+            if (expenseModal.editing) { await api.updateExpense(expenseModal.editing.id, data); setToast({ message: "Pengeluaran berhasil diperbarui!", type: "success" }); }
+            else { await api.createExpense(data); setToast({ message: "Pengeluaran berhasil ditambahkan!", type: "success" }); }
+            setExpenseModal({ open: false }); await loadAll();
+        } catch (e: any) { setToast({ message: e?.message || "Gagal menyimpan pengeluaran.", type: "error" }); }
     };
     const deleteExpense = (e: Expense) => {
         setConfirm({
-            title: "Konfirmasi Hapus",
-            message: `Apakah Anda yakin ingin menghapus pengeluaran "${e.description || e.category}"? Data yang dihapus tidak dapat dikembalikan.`,
+            title: "Konfirmasi Hapus", message: `Apakah Anda yakin ingin menghapus pengeluaran "${e.description || e.category}"? Data yang dihapus tidak dapat dikembalikan.`,
             onConfirm: async () => { await api.deleteExpense(e.id); setConfirm(null); await loadAll(); setToast({ message: "Pengeluaran berhasil dihapus!", type: "success" }); },
         });
     };
 
-    // ── Order handlers
-    const createOrder = async (data: any) => {
-        await api.createOrder(data);
-        await loadAll();
-        setToast({ message: "Pesanan berhasil ditambahkan!", type: "success" });
-    };
+    const createOrder = async (data: any) => { await api.createOrder(data); await loadAll(); setToast({ message: "Pesanan baru berhasil ditambahkan!", type: "success" }); refreshNotificationList(); };
     const deleteOrder = (o: Order) => {
         setConfirm({
-            title: "Konfirmasi Hapus",
-            message: `Apakah Anda yakin ingin menghapus pesanan "${o.invoice}"? Data yang dihapus tidak dapat dikembalikan.`,
-            onConfirm: async () => {
-                await api.deleteOrder(o.id);
-                setConfirm(null);
-                if (selectedOrder?.id === o.id) setSelectedOrder(null);
-                await loadAll();
-                setToast({ message: "Pesanan berhasil dihapus!", type: "success" });
-            },
+            title: "Konfirmasi Hapus", message: `Apakah Anda yakin ingin menghapus pesanan "${o.invoice}"? Data yang dihapus tidak dapat dikembalikan.`,
+            onConfirm: async () => { await api.deleteOrder(o.id); setConfirm(null); if (selectedOrder?.id === o.id) setSelectedOrder(null); await loadAll(); setToast({ message: "Pesanan berhasil dihapus!", type: "success" }); },
         });
     };
     const advanceStatus = async () => {
@@ -2444,8 +2191,6 @@ export default function App() {
         const next = STATUS_FLOW[idx + 1];
         await api.updateOrderStatus(selectedOrder.id, STATUS_TO_BACKEND[next]);
         await loadAll();
-        const updated = orders.find(o => o.id === selectedOrder.id);
-        // refresh selected from latest loaded state
         setSelectedOrder((prev) => prev ? { ...prev, status: next } : prev);
         setToast({ message: `Status pesanan berhasil diubah ke: ${next}`, type: "success" });
     };
@@ -2454,43 +2199,28 @@ export default function App() {
         await api.createPayment(selectedOrder.id, data);
         setPaymentModal(false);
         await loadAll();
-        // Reload order detail to reflect updated payment status
-        if (selectedOrder) {
-            await loadOrderDetail(selectedOrder.id);
-        }
+        if (selectedOrder) await loadOrderDetail(selectedOrder.id);
         setToast({ message: "Pembayaran berhasil dicatat!", type: "success" });
     };
 
     const loadOrderDetail = async (orderId: string) => {
-        try {
-            const detail = await api.getOrder(orderId);
-            setSelectedOrder(detail);
-        } catch (err) {
-            console.error('Failed to load order detail:', err);
-        }
+        try { const detail = await api.getOrder(orderId); setSelectedOrder(detail); }
+        catch (err) { console.error('Failed to load order detail:', err); }
     };
 
-    // ── WhatsApp
     const sendWhatsApp = async () => {
         if (!selectedOrder) return;
         setWaSending(true);
-        try {
-            const res = await api.sendWhatsApp(selectedOrder.id);
-            alert(res?.message || "WhatsApp dikirim.");
-        } catch (e: any) {
-            alert("Gagal mengirim: " + (e?.message || "terjadi kesalahan"));
-        } finally {
-            setWaSending(false);
-            setShowWhatsApp(false);
-        }
+        try { const res = await api.sendWhatsApp(selectedOrder.id); alert(res?.message || "WhatsApp dikirim."); }
+        catch (e: any) { alert("Gagal mengirim: " + (e?.message || "terjadi kesalahan")); }
+        finally { setWaSending(false); setShowWhatsApp(false); }
     };
 
     const handleNotificationNavigate = useCallback(async (type: string, id: string) => {
-        if (type === 'order-detail') {
-            await loadOrderDetail(id);
-            setPage('order-detail');
-        }
+        if (type === 'order-detail') { await loadOrderDetail(id); setPage('order-detail'); }
     }, [loadOrderDetail]);
+
+    const refreshNotificationList = useCallback(() => { setNotifRefreshKey(prev => prev + 1); }, []);
 
     const navItems: { icon: (props: { size?: number; className?: string }) => any; label: string; page: Page }[] = [
         { icon: LayoutDashboard, label: "Dashboard", page: "dashboard" },
@@ -2502,67 +2232,41 @@ export default function App() {
         { icon: SettingsIcon, label: "Pengaturan", page: "settings" },
     ];
 
-
     if (page === "login") {
         return <LoginPage onLogin={handleLogin} />;
     }
 
     return (
         <div className="min-h-screen bg-[#F5F7FA] flex">
-            {/* Sidebar - Fixed position */}
             <aside className={`${sidebarOpen ? "w-64" : "w-16"} bg-[#0F2544] transition-all duration-200 flex flex-col shrink-0 fixed h-screen overflow-y-auto`}>
                 <div className="p-4 flex items-center gap-3 border-b border-white/10">
-                    <div className="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center shrink-0">
-                        <Scissors size={18} className="text-white" />
-                    </div>
-                    {sidebarOpen && (
-                        <div className="min-w-0">
-                            <p className="text-white font-bold text-sm leading-tight">A.Y.A Tailor</p>
-                            <p className="text-blue-200 text-[10px]">Manajemen Jahit</p>
-                        </div>
-                    )}
+                    <div className="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center shrink-0"><Scissors size={18} className="text-white" /></div>
+                    {sidebarOpen && (<div className="min-w-0"><p className="text-white font-bold text-sm leading-tight">A.Y.A Tailor</p><p className="text-blue-200 text-[10px]">Manajemen Jahit</p></div>)}
                 </div>
-
                 <nav className="flex-1 p-3 space-y-1">
                     {navItems.map(item => {
                         const Icon = item.icon;
                         const isActive = page === item.page;
                         return (
-                            <button
-                                key={item.page}
-                                onClick={() => setPage(item.page)}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-blue-600 text-white shadow-sm" : "text-blue-200/70 hover:bg-white/10 hover:text-white"}`}
-                                title={item.label}
-                            >
+                            <button key={item.page} onClick={() => setPage(item.page)}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isActive ? "bg-blue-600 text-white shadow-sm" : "text-blue-200/70 hover:bg-white/10 hover:text-white"}`} title={item.label}>
                                 <Icon size={18} className="shrink-0" />
                                 {sidebarOpen && <span>{item.label}</span>}
                             </button>
                         );
                     })}
                 </nav>
-
                 <div className="p-3 border-t border-white/10">
-                    <button
-                        onClick={() => setPage("login")}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-blue-200/70 hover:bg-white/10 hover:text-white transition-all"
-                        title="Keluar"
-                    >
-                        <LogOut size={18} className="shrink-0" />
-                        {sidebarOpen && <span>Keluar</span>}
+                    <button onClick={() => setPage("login")} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-blue-200/70 hover:bg-white/10 hover:text-white transition-all" title="Keluar">
+                        <LogOut size={18} className="shrink-0" /> {sidebarOpen && <span>Keluar</span>}
                     </button>
                 </div>
-
-                <button
-                    onClick={() => setSidebarOpen(!sidebarOpen)}
-                    className="p-3 border-t border-white/10 text-blue-200/50 hover:text-white transition-colors text-xs text-center"
-                >
+                <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-3 border-t border-white/10 text-blue-200/50 hover:text-white transition-colors text-xs text-center">
                     {sidebarOpen ? "◀" : "▶"}
                 </button>
             </aside>
 
-            {/* Main Content - Scrollable */}
             <div className={`flex-1 flex flex-col min-w-0 ${sidebarOpen ? "ml-64" : "ml-16"}`}>
-                {/* Top Bar */}
                 <header className="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
                     <div>
                         <h1 className="text-lg font-bold text-gray-900">
@@ -2578,147 +2282,37 @@ export default function App() {
                         </h1>
                     </div>
                     <div className="flex items-center gap-3">
-                        <NotificationDropdown onNavigate={handleNotificationNavigate} />
+                        <NotificationDropdown onNavigate={handleNotificationNavigate} refreshTrigger={notifRefreshKey} />
                         <div className="flex items-center gap-2.5 pl-3 border-l border-gray-200">
-                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                <User size={14} className="text-white" />
-                            </div>
-                            <div className="text-sm">
-                                <p className="font-semibold text-gray-900 leading-tight">Admin</p>
-                                <p className="text-xs text-gray-400">A.Y.A Tailor</p>
-                            </div>
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center"><User size={14} className="text-white" /></div>
+                            <div className="text-sm"><p className="font-semibold text-gray-900 leading-tight">Admin</p><p className="text-xs text-gray-400">A.Y.A Tailor</p></div>
                         </div>
                     </div>
                 </header>
 
-                {/* Page Content */}
                 <main className="flex-1 p-6">
-                    {loading && <p className="text-sm text-gray-400 mb-3">Memuat data...</p>}
-                    {page === "dashboard" && (
-                        <DashboardPage
-                            orders={orders}
-                            setPage={setPage}
-                            setSelectedOrder={setSelectedOrder}
-                            setShowWhatsApp={setShowWhatsApp}
-                            onLoadDetail={loadOrderDetail}
-                        />
-                    )}
-                    {page === "customers" && (
-                        <CustomersPage
-                            customers={customers}
-                            orders={orders}
-                            onAdd={() => setCustomerModal({ open: true })}
-                            onEdit={(c) => setCustomerModal({ open: true, editing: c })}
-                            onDelete={deleteCustomer}
-                            onShowDetail={(c) => { setSelectedCustomer(c); setShowCustomerDetail(true); }}
-                        />
-                    )}
-                    {page === "services" && (
-                        <ServicesPage
-                            services={services}
-                            onAdd={() => setServiceModal({ open: true })}
-                            onEdit={(s) => setServiceModal({ open: true, editing: s })}
-                            onDelete={deleteService}
-                        />
-                    )}
-                    {page === "orders" && (
-                        <OrdersPage
-                            orders={orders}
-                            setPage={setPage}
-                            setSelectedOrder={setSelectedOrder}
-                            onDelete={deleteOrder}
-                            onLoadDetail={loadOrderDetail}
-                        />
-                    )}
-                    {page === "new-transaction" && (
-                        <NewTransactionPage
-                            services={services}
-                            customers={customers}
-                            setPage={setPage}
-                            onCreate={createOrder}
-                        />
-                    )}
-                    {page === "order-detail" && selectedOrder && (
-                        <OrderDetailPage
-                            order={selectedOrder}
-                            setPage={setPage}
-                            setShowWhatsApp={setShowWhatsApp}
-                            setShowReceipt={setShowReceipt}
-                            onAdvanceStatus={advanceStatus}
-                            onPay={() => setPaymentModal(true)}
-                        />
-                    )}
-                    {page === "expenses" && (
-                        <ExpensesPage
-                            expenses={expenses}
-                            onAdd={() => setExpenseModal({ open: true })}
-                            onEdit={(e) => setExpenseModal({ open: true, editing: e })}
-                            onDelete={deleteExpense}
-                        />
-                    )}
+                    {loading && <LoadingSpinner message="Memuat data..." />}
+                    {page === "dashboard" && <DashboardPage orders={orders} setPage={setPage} setSelectedOrder={setSelectedOrder} setShowWhatsApp={setShowWhatsApp} onLoadDetail={loadOrderDetail} />}
+                    {page === "customers" && <CustomersPage customers={customers} orders={orders} onAdd={() => setCustomerModal({ open: true })} onEdit={(c) => setCustomerModal({ open: true, editing: c })} onDelete={deleteCustomer} onShowDetail={(c) => { setSelectedCustomer(c); setShowCustomerDetail(true); }} />}
+                    {page === "services" && <ServicesPage services={services} onAdd={() => setServiceModal({ open: true })} onEdit={(s) => setServiceModal({ open: true, editing: s })} onDelete={deleteService} />}
+                    {page === "orders" && <OrdersPage orders={orders} setPage={setPage} setSelectedOrder={setSelectedOrder} onDelete={deleteOrder} onLoadDetail={loadOrderDetail} />}
+                    {page === "new-transaction" && <NewTransactionPage services={services} customers={customers} setPage={setPage} onCreate={createOrder} />}
+                    {page === "order-detail" && selectedOrder && <OrderDetailPage order={selectedOrder} setPage={setPage} setShowWhatsApp={setShowWhatsApp} setShowReceipt={setShowReceipt} onAdvanceStatus={advanceStatus} onPay={() => setPaymentModal(true)} />}
+                    {page === "expenses" && <ExpensesPage expenses={expenses} onAdd={() => setExpenseModal({ open: true })} onEdit={(e) => setExpenseModal({ open: true, editing: e })} onDelete={deleteExpense} />}
                     {page === "reports" && <ReportsPage orders={orders} expenses={expenses} />}
-                    {page === "settings" && <SettingsPage setToast={setToast} />}
+                    {page === "settings" && <SettingsPage setToast={setToast} refreshNotifications={refreshNotificationList} />}
                 </main>
             </div>
 
             {/* Modals */}
-            {showCustomerDetail && selectedCustomer && (
-                <CustomerDetailModal
-                    customer={selectedCustomer}
-                    orders={orders}
-                    onClose={() => setShowCustomerDetail(false)}
-                />
-            )}
-            {showWhatsApp && selectedOrder && (
-                <WhatsAppModal
-                    order={selectedOrder}
-                    sending={waSending}
-                    onSend={sendWhatsApp}
-                    onClose={() => setShowWhatsApp(false)}
-                />
-            )}
-            {showReceipt && selectedOrder && (
-                <ReceiptModal
-                    order={selectedOrder}
-                    onClose={() => setShowReceipt(false)}
-                />
-            )}
-            {customerModal.open && (
-                <CustomerFormModal
-                    initial={customerModal.editing}
-                    onSave={saveCustomer}
-                    onClose={() => setCustomerModal({ open: false })}
-                />
-            )}
-            {serviceModal.open && (
-                <ServiceFormModal
-                    initial={serviceModal.editing}
-                    onSave={saveService}
-                    onClose={() => setServiceModal({ open: false })}
-                />
-            )}
-            {expenseModal.open && (
-                <ExpenseFormModal
-                    initial={expenseModal.editing}
-                    onSave={saveExpense}
-                    onClose={() => setExpenseModal({ open: false })}
-                />
-            )}
-            {paymentModal && selectedOrder && (
-                <PaymentModal
-                    order={selectedOrder}
-                    onSave={savePayment}
-                    onClose={() => setPaymentModal(false)}
-                />
-            )}
-            {confirm && (
-                <ConfirmModal
-                    title={confirm.title}
-                    message={confirm.message}
-                    onConfirm={confirm.onConfirm}
-                    onClose={() => setConfirm(null)}
-                />
-            )}
+            {showCustomerDetail && selectedCustomer && <CustomerDetailModal customer={selectedCustomer} orders={orders} onClose={() => setShowCustomerDetail(false)} />}
+            {showWhatsApp && selectedOrder && <WhatsAppModal order={selectedOrder} sending={waSending} onSend={sendWhatsApp} onClose={() => setShowWhatsApp(false)} />}
+            {showReceipt && selectedOrder && <ReceiptModal order={selectedOrder} onClose={() => setShowReceipt(false)} />}
+            {customerModal.open && <CustomerFormModal initial={customerModal.editing} onSave={saveCustomer} onClose={() => setCustomerModal({ open: false })} />}
+            {serviceModal.open && <ServiceFormModal initial={serviceModal.editing} onSave={saveService} onClose={() => setServiceModal({ open: false })} />}
+            {expenseModal.open && <ExpenseFormModal initial={expenseModal.editing} onSave={saveExpense} onClose={() => setExpenseModal({ open: false })} />}
+            {paymentModal && selectedOrder && <PaymentModal order={selectedOrder} onSave={savePayment} onClose={() => setPaymentModal(false)} />}
+            {confirm && <ConfirmModal title={confirm.title} message={confirm.message} onConfirm={confirm.onConfirm} onClose={() => setConfirm(null)} />}
 
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
         </div>

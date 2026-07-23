@@ -12,12 +12,10 @@ class NotificationService
      */
     public function orderCreated(Order $order): Notification
     {
-        $customerName = $order->customer->name ?? 'Pelanggan';
-        
         return Notification::create([
             'type' => 'order_created',
             'title' => 'Pesanan Baru',
-            'message' => "Pesanan baru dari {$customerName} - {$order->order_number}",
+            'message' => 'Pesanan baru berhasil ditambahkan',
             'icon' => 'ShoppingBag',
             'color' => 'blue',
             'link_type' => 'order-detail',
@@ -127,6 +125,22 @@ class NotificationService
     }
 
     /**
+     * Create notification when an order is updated
+     */
+    public function orderUpdated(Order $order): Notification
+    {
+        return Notification::create([
+            'type' => 'order_updated',
+            'title' => 'Pesanan Diperbarui',
+            'message' => 'Pesanan berhasil diperbarui',
+            'icon' => 'ShoppingBag',
+            'color' => 'amber',
+            'link_type' => 'order-detail',
+            'link_id' => (string) $order->id,
+        ]);
+    }
+
+    /**
      * Create notification when a new customer is added
      */
     public function customerCreated(string $customerName, int $customerId): Notification
@@ -134,7 +148,7 @@ class NotificationService
         return Notification::create([
             'type' => 'customer_created',
             'title' => 'Pelanggan Baru',
-            'message' => "Pelanggan baru: {$customerName} telah ditambahkan",
+            'message' => 'Pelanggan berhasil ditambahkan',
             'icon' => 'User',
             'color' => 'blue',
             'link_type' => null,
@@ -166,7 +180,7 @@ class NotificationService
         return Notification::create([
             'type' => 'settings_updated',
             'title' => 'Pengaturan Diperbarui',
-            'message' => 'Pengaturan toko berhasil diperbarui',
+            'message' => 'Pengaturan berhasil disimpan',
             'icon' => 'Settings',
             'color' => 'slate',
             'link_type' => 'settings',

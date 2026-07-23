@@ -150,6 +150,14 @@ class OrderController extends Controller
             $order->orderItems()->create($item);
         }
 
+        // Create notification for order update
+        try {
+            $notifService = new NotificationService();
+            $notifService->orderUpdated($order);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create notification: ' . $e->getMessage());
+        }
+
         return redirect()->route('orders.show', $order)
             ->with('success', 'Pesanan berhasil diperbarui!');
     }
