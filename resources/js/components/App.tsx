@@ -420,6 +420,31 @@ function CustomerFormModal({ initial, onSave, onClose }: {
     const [phone, setPhone] = useState(initial?.phone ?? "");
     const [address, setAddress] = useState(initial?.address ?? "");
     const [notes, setNotes] = useState(initial?.notes ?? "");
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const validate = (): boolean => {
+        const newErrors: Record<string, string> = {};
+        if (!name.trim()) newErrors.name = "Nama wajib diisi";
+        const phoneClean = phone.replace(/[^0-9]/g, '');
+        if (!phoneClean) newErrors.phone = "Nomor WhatsApp wajib diisi";
+        else if (phoneClean.length < 12) newErrors.phone = "Nomor WhatsApp minimal 12 digit";
+        else if (!phoneClean.startsWith('62')) newErrors.phone = "Nomor WhatsApp harus diawali 62 (contoh: 628xxx)";
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSave = () => {
+        if (!validate()) return;
+        onSave({ name, phone, address, notes });
+    };
+
+    const formatPhone = (val: string) => {
+        const cleaned = val.replace(/[^0-9]/g, '');
+        if (cleaned.length > 0 && !cleaned.startsWith('62') && cleaned.startsWith('0')) {
+            return '62' + cleaned.slice(1);
+        }
+        return cleaned;
+    };
 
     return (
         <Backdrop>
@@ -429,13 +454,19 @@ function CustomerFormModal({ initial, onSave, onClose }: {
                     <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"><X size={17} className="text-gray-500" /></button>
                 </div>
                 <div className="p-6 space-y-4">
-                    <InputField label="Nama"><input className={inputClass} value={name} onChange={e => setName(e.target.value)} placeholder="Nama pelanggan" /></InputField>
-                    <InputField label="Nomor WhatsApp"><input className={inputClass} value={phone} onChange={e => setPhone(e.target.value)} placeholder="08xxxxxxxxxx" /></InputField>
-                    <InputField label="Alamat"><textarea className={`${inputClass} resize-none`} rows={2} value={address} onChange={e => setAddress(e.target.value)} /></InputField>
+                    <InputField label={<>Nama <span className="text-red-500">*</span></>}>
+                        <input className={`${inputClass} ${errors.name ? 'border-red-300 ring-2 ring-red-200' : ''}`} value={name} onChange={e => { setName(e.target.value); setErrors(prev => ({ ...prev, name: '' })); }} placeholder="Nama pelanggan" />
+                        {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+                    </InputField>
+                    <InputField label={<>Nomor WhatsApp <span className="text-red-500">*</span></>}>
+                        <input className={`${inputClass} ${errors.phone ? 'border-red-300 ring-2 ring-red-200' : ''}`} value={phone} onChange={e => { setPhone(e.target.value); setErrors(prev => ({ ...prev, phone: '' })); }} placeholder="628xxxxxxxxxx" />
+                        {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
+                    </InputField>
+                    <InputField label="Alamat"><textarea className={`${inputClass} resize-none`} rows={2} value={address} onChange={e => setAddress(e.target.value)} placeholder="Alamat lengkap" /></InputField>
                     <InputField label="Catatan"><textarea className={`${inputClass} resize-none`} rows={2} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Catatan khusus" /></InputField>
                     <div className="flex gap-3 pt-1">
                         <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button onClick={() => onSave({ name, phone, address, notes })} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"><Save size={14} />Simpan</button>
+                        <button onClick={handleSave} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"><Save size={14} />Simpan</button>
                     </div>
                 </div>
             </div>
@@ -452,6 +483,21 @@ function ServiceFormModal({ initial, onSave, onClose }: {
     const [price, setPrice] = useState(initial ? String(initial.price) : "");
     const [estimatedDays, setEstimatedDays] = useState(initial ? String(initial.estimatedDays) : "1");
     const [status, setStatus] = useState<"Aktif" | "Nonaktif">(initial?.status ?? "Aktif");
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const validate = (): boolean => {
+        const newErrors: Record<string, string> = {};
+        if (!name.trim()) newErrors.name = "Nama layanan wajib diisi";
+        if (!price || Number(price) <= 0) newErrors.price = "Harga harus diisi dan lebih dari 0";
+        if (!estimatedDays || Number(estimatedDays) <= 0) newErrors.estimatedDays = "Estimasi hari wajib diisi";
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSave = () => {
+        if (!validate()) return;
+        onSave({ name, price: Number(price), estimatedDays: Number(estimatedDays), status });
+    };
 
     return (
         <Backdrop>
@@ -461,10 +507,19 @@ function ServiceFormModal({ initial, onSave, onClose }: {
                     <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"><X size={17} className="text-gray-500" /></button>
                 </div>
                 <div className="p-6 space-y-4">
-                    <InputField label="Nama Layanan"><input className={inputClass} value={name} onChange={e => setName(e.target.value)} placeholder="Contoh: Pendekkan Celana" /></InputField>
+                    <InputField label={<>Nama Layanan <span className="text-red-500">*</span></>}>
+                        <input className={`${inputClass} ${errors.name ? 'border-red-300 ring-2 ring-red-200' : ''}`} value={name} onChange={e => { setName(e.target.value); setErrors(prev => ({ ...prev, name: '' })); }} placeholder="Contoh: Pendekkan Celana" />
+                        {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
+                    </InputField>
                     <div className="grid grid-cols-2 gap-4">
-                        <InputField label="Harga (Rp)"><input type="number" className={inputClass} value={price} onChange={e => setPrice(e.target.value)} /></InputField>
-                        <InputField label="Estimasi (hari)"><input type="number" className={inputClass} value={estimatedDays} onChange={e => setEstimatedDays(e.target.value)} /></InputField>
+                        <InputField label={<>Harga (Rp) <span className="text-red-500">*</span></>}>
+                            <input type="number" className={`${inputClass} ${errors.price ? 'border-red-300 ring-2 ring-red-200' : ''}`} value={price} onChange={e => { setPrice(e.target.value); setErrors(prev => ({ ...prev, price: '' })); }} />
+                            {errors.price && <p className="text-xs text-red-500 mt-1">{errors.price}</p>}
+                        </InputField>
+                        <InputField label={<>Estimasi (hari) <span className="text-red-500">*</span></>}>
+                            <input type="number" className={`${inputClass} ${errors.estimatedDays ? 'border-red-300 ring-2 ring-red-200' : ''}`} value={estimatedDays} onChange={e => { setEstimatedDays(e.target.value); setErrors(prev => ({ ...prev, estimatedDays: '' })); }} />
+                            {errors.estimatedDays && <p className="text-xs text-red-500 mt-1">{errors.estimatedDays}</p>}
+                        </InputField>
                     </div>
                     <InputField label="Status">
                         <select className={inputClass} value={status} onChange={e => setStatus(e.target.value as "Aktif" | "Nonaktif")}>
@@ -474,7 +529,7 @@ function ServiceFormModal({ initial, onSave, onClose }: {
                     </InputField>
                     <div className="flex gap-3 pt-1">
                         <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button onClick={() => onSave({ name, price: Number(price) || 0, estimatedDays: Number(estimatedDays) || 1, status })} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"><Save size={14} />Simpan</button>
+                        <button onClick={handleSave} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"><Save size={14} />Simpan</button>
                     </div>
                 </div>
             </div>
@@ -491,6 +546,20 @@ function ExpenseFormModal({ initial, onSave, onClose }: {
     const [category, setCategory] = useState(initial?.category ?? "");
     const [description, setDescription] = useState(initial?.description ?? "");
     const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
+    const validate = (): boolean => {
+        const newErrors: Record<string, string> = {};
+        if (!category.trim()) newErrors.category = "Kategori wajib diisi";
+        if (!amount || Number(amount) <= 0) newErrors.amount = "Jumlah harus diisi dan lebih dari 0";
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleSave = () => {
+        if (!validate()) return;
+        onSave({ date, category, description, amount: Number(amount) });
+    };
 
     return (
         <Backdrop>
@@ -501,14 +570,20 @@ function ExpenseFormModal({ initial, onSave, onClose }: {
                 </div>
                 <div className="p-6 space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <InputField label="Tanggal"><input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></InputField>
-                        <InputField label="Kategori"><input className={inputClass} value={category} onChange={e => setCategory(e.target.value)} placeholder="Benang, Listrik, ..." /></InputField>
+                        <InputField label={<><span className="text-red-500">*</span> Tanggal</>}><input type="date" className={inputClass} value={date} onChange={e => setDate(e.target.value)} /></InputField>
+                        <InputField label={<><span className="text-red-500">*</span> Kategori</>}>
+                            <input className={`${inputClass} ${errors.category ? 'border-red-300 ring-2 ring-red-200' : ''}`} value={category} onChange={e => { setCategory(e.target.value); setErrors(prev => ({ ...prev, category: '' })); }} placeholder="Benang, Listrik, ..." />
+                            {errors.category && <p className="text-xs text-red-500 mt-1">{errors.category}</p>}
+                        </InputField>
                     </div>
                     <InputField label="Deskripsi"><input className={inputClass} value={description} onChange={e => setDescription(e.target.value)} placeholder="Keterangan" /></InputField>
-                    <InputField label="Jumlah (Rp)"><input type="number" className={inputClass} value={amount} onChange={e => setAmount(e.target.value)} /></InputField>
+                    <InputField label={<><span className="text-red-500">*</span> Jumlah (Rp)</>}>
+                        <input type="number" className={`${inputClass} ${errors.amount ? 'border-red-300 ring-2 ring-red-200' : ''}`} value={amount} onChange={e => { setAmount(e.target.value); setErrors(prev => ({ ...prev, amount: '' })); }} />
+                        {errors.amount && <p className="text-xs text-red-500 mt-1">{errors.amount}</p>}
+                    </InputField>
                     <div className="flex gap-3 pt-1">
                         <button onClick={onClose} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50">Batal</button>
-                        <button onClick={() => onSave({ date, category, description, amount: Number(amount) || 0 })} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"><Save size={14} />Simpan</button>
+                        <button onClick={handleSave} className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 flex items-center justify-center gap-2"><Save size={14} />Simpan</button>
                     </div>
                 </div>
             </div>
@@ -704,204 +779,304 @@ function FabricOverlay() {
 
 // ─── Login Page ────────────────────────────────────────────────────────────────
 
-function LoginPage({ onLogin }: { onLogin: (payload: { username: string; password: string }) => void }) {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-
+function LoginLoadingOverlay() {
     return (
         <motion.div
-            className="min-h-screen flex bg-gradient-to-br from-[#0F2544] via-[#1a3a6b] to-[#0F2544]"
+            className="fixed inset-0 z-[60] flex items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
         >
-            {/* Background decorations */}
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0F2544]/95 via-[#1a3a6b]/95 to-[#0F2544]/95 backdrop-blur-md" />
+
+            {/* Sewing thread decoration */}
             <SewingThread />
             <StitchPattern />
             <FabricOverlay />
 
-            {/* Left Side - Brand Panel */}
+            {/* Loading card */}
             <motion.div
-                className="hidden lg:flex flex-1 items-center justify-center p-12 relative"
-                initial={{ x: -80, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="relative z-10 flex flex-col items-center gap-5"
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
             >
-                <motion.div
-                    className="text-center text-white max-w-sm"
-                    initial={{ y: 30 }}
-                    animate={{ y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
-                >
-                    {/* Logo */}
-                    <motion.div
-                        className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/20"
-                        whileHover={{ scale: 1.05, rotate: 3 }}
-                        transition={{ type: "spring", stiffness: 300 }}
-                    >
-                        <Scissors size={34} className="text-white" />
-                    </motion.div>
-
-                    <motion.h1
-                        className="text-3xl font-bold mb-2 tracking-tight"
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
-                    >
-                        A.Y.A Tailor
-                    </motion.h1>
-
-                    <motion.p
-                        className="text-blue-200/70 text-sm mb-6 leading-relaxed"
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                    >
-                        Sistem manajemen jahit dan permak pakaian yang memudahkan Anda mengelola pesanan, pembayaran, dan pelanggan.
-                    </motion.p>
-
-                    {/* Feature list */}
-                    <motion.div
-                        className="space-y-3 text-left"
-                        initial="hidden"
-                        animate="visible"
-                        variants={{
-                            visible: { transition: { staggerChildren: 0.12, delayChildren: 0.5 } },
-                            hidden: {},
-                        }}
-                    >
-                        {[
-                            { icon: ShoppingBag, text: "Catat & kelola pesanan jahit" },
-                            { icon: Wallet, text: "Atur pembayaran dan DP" },
-                            { icon: Printer, text: "Cetak nota thermal otomatis" },
-                            { icon: MessageCircle, text: "Notifikasi WhatsApp otomatis" },
-                        ].map((item) => {
-                            const Icon = item.icon;
-                            return (
-                                <motion.div
-                                    key={item.text}
-                                    className="flex items-center gap-3 text-sm text-blue-200/80"
-                                    variants={{
-                                        hidden: { x: -20, opacity: 0 },
-                                        visible: { x: 0, opacity: 1, transition: { duration: 0.4 } },
-                                    }}
-                                >
-                                    <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                        <Icon size={13} className="text-blue-300" />
-                                    </div>
-                                    <span>{item.text}</span>
-                                </motion.div>
-                            );
-                        })}
-                    </motion.div>
-                </motion.div>
-            </motion.div>
-
-            {/* Right Side - Login Form */}
-            <motion.div
-                className="flex-1 flex items-center justify-center p-6 lg:p-12"
-                initial={{ x: 80, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-            >
-                <motion.div
-                    className="w-full max-w-sm"
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
-                >
-                    {/* Card */}
-                    <div className="bg-white rounded-2xl shadow-2xl p-8">
-                        {/* Mobile logo */}
-                        <motion.div
-                            className="lg:hidden flex justify-center mb-6"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
+                {/* Loading dots */}
+                <div className="space-y-2 text-center">
+                    <div className="flex items-center gap-1 justify-center">
+                        <motion.span
+                            className="text-white/90 font-semibold text-base"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
                         >
-                            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
-                                <Scissors size={24} className="text-white" />
-                            </div>
-                        </motion.div>
-
-                        {/* Header */}
-                        <motion.div
-                            className="mb-6"
-                            initial={{ y: 15, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.4, delay: 0.4 }}
-                        >
-                            <h2 className="text-xl font-bold text-gray-900">Masuk</h2>
-                            <p className="text-sm text-gray-500 mt-1">Masukkan username dan password Anda</p>
-                        </motion.div>
-
-                        {/* Form */}
-                        <form
-                            onSubmit={e => { e.preventDefault(); onLogin({ username, password }); }}
-                            className="space-y-4"
-                        >
-                            <motion.div
-                                initial={{ y: 15, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.4, delay: 0.5 }}
-                            >
-                                <InputField label="Username">
-                                    <input
-                                        type="text"
-                                        value={username}
-                                        onChange={e => setUsername(e.target.value)}
-                                        placeholder="Masukkan username"
-                                        className={inputClass}
-                                    />
-                                </InputField>
-                            </motion.div>
-
-                            <motion.div
-                                initial={{ y: 15, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.4, delay: 0.6 }}
-                            >
-                                <InputField label="Password">
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        placeholder="Masukkan password"
-                                        className={inputClass}
-                                    />
-                                </InputField>
-                            </motion.div>
-
-                            <motion.div
-                                initial={{ y: 15, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ duration: 0.4, delay: 0.7 }}
-                            >
-                                <motion.button
-                                    type="submit"
-                                    className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 shadow-sm shadow-blue-200"
-                                    whileHover={{ scale: 1.01, backgroundColor: "#2563eb" }}
-                                    whileTap={{ scale: 0.99 }}
-                                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                                >
-                                    Masuk ke Sistem
-                                </motion.button>
-                            </motion.div>
-                        </form>
-
-                        {/* Footer */}
-                        <motion.p
-                            className="text-center text-xs text-gray-400 mt-6"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.5, delay: 0.9 }}
-                        >
-                            © 2026 A.Y.A Tailor · Versi 1.0
-                        </motion.p>
+                            Memverifikasi Akun
+                        </motion.span>
+                        <div className="flex gap-0.5 ml-1">
+                            {[0, 1, 2].map((i) => (
+                                <motion.span
+                                    key={i}
+                                    className="w-1.5 h-1.5 bg-blue-400 rounded-full"
+                                    animate={{ opacity: [0.3, 1, 0.3] }}
+                                    transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
+                                />
+                            ))}
+                        </div>
                     </div>
-                </motion.div>
+                    <motion.p
+                        className="text-blue-200/50 text-sm"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
+                    >
+                        Mohon tunggu sebentar...
+                    </motion.p>
+                </div>
             </motion.div>
         </motion.div>
+    );
+}
+
+function LoginPage({ onLogin }: { onLogin: (payload: { username: string; password: string }) => void }) {
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!username || !password) {
+            setError("Mohon isi username dan password terlebih dahulu");
+            return;
+        }
+        setError("");
+        setIsLoading(true);
+        try {
+            await onLogin({ username, password });
+        } catch (err: any) {
+            setError(err?.message || "Login gagal. Periksa kembali username dan password Anda.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <>
+            <AnimatePresence>
+                {isLoading && <LoginLoadingOverlay />}
+            </AnimatePresence>
+            <motion.div
+                className="min-h-screen flex bg-gradient-to-br from-[#0F2544] via-[#1a3a6b] to-[#0F2544]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+            >
+                {/* Background decorations */}
+                <SewingThread />
+                <StitchPattern />
+                <FabricOverlay />
+
+                {/* Left Side - Brand Panel */}
+                <motion.div
+                    className="hidden lg:flex flex-1 items-center justify-center p-12 relative"
+                    initial={{ x: -80, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                >
+                    <motion.div
+                        className="text-center text-white max-w-sm"
+                        initial={{ y: 30 }}
+                        animate={{ y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                    >
+                        {/* Logo */}
+                        <motion.div
+                            className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/20"
+                            whileHover={{ scale: 1.05, rotate: 3 }}
+                            transition={{ type: "spring", stiffness: 300 }}
+                        >
+                            <Scissors size={34} className="text-white" />
+                        </motion.div>
+
+                        <motion.h1
+                            className="text-3xl font-bold mb-2 tracking-tight"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 0.3 }}
+                        >
+                            A.Y.A Tailor
+                        </motion.h1>
+
+                        <motion.p
+                            className="text-blue-200/70 text-sm mb-6 leading-relaxed"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ duration: 0.5, delay: 0.4 }}
+                        >
+                            Sistem manajemen jahit dan permak pakaian yang memudahkan Anda mengelola pesanan, pembayaran, dan pelanggan.
+                        </motion.p>
+
+                        {/* Feature list */}
+                        <motion.div
+                            className="space-y-3 text-left"
+                            initial="hidden"
+                            animate="visible"
+                            variants={{
+                                visible: { transition: { staggerChildren: 0.12, delayChildren: 0.5 } },
+                                hidden: {},
+                            }}
+                        >
+                            {[
+                                { icon: ShoppingBag, text: "Catat & kelola pesanan jahit" },
+                                { icon: Wallet, text: "Atur pembayaran dan DP" },
+                                { icon: Printer, text: "Cetak nota thermal otomatis" },
+                                { icon: MessageCircle, text: "Notifikasi WhatsApp otomatis" },
+                            ].map((item) => {
+                                const Icon = item.icon;
+                                return (
+                                    <motion.div
+                                        key={item.text}
+                                        className="flex items-center gap-3 text-sm text-blue-200/80"
+                                        variants={{
+                                            hidden: { x: -20, opacity: 0 },
+                                            visible: { x: 0, opacity: 1, transition: { duration: 0.4 } },
+                                        }}
+                                    >
+                                        <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                            <Icon size={13} className="text-blue-300" />
+                                        </div>
+                                        <span>{item.text}</span>
+                                    </motion.div>
+                                );
+                            })}
+                        </motion.div>
+                    </motion.div>
+                </motion.div>
+
+                {/* Right Side - Login Form */}
+                <motion.div
+                    className="flex-1 flex items-center justify-center p-6 lg:p-12"
+                    initial={{ x: 80, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                >
+                    <motion.div
+                        className="w-full max-w-sm"
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ duration: 0.6, delay: 0.3 }}
+                    >
+                        {/* Card */}
+                        <div className="bg-white rounded-2xl shadow-2xl p-8">
+                            {/* Mobile logo */}
+                            <motion.div
+                                className="lg:hidden flex justify-center mb-6"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
+                            >
+                                <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
+                                    <Scissors size={24} className="text-white" />
+                                </div>
+                            </motion.div>
+
+                            {/* Header */}
+                            <motion.div
+                                className="mb-6"
+                                initial={{ y: 15, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ duration: 0.4, delay: 0.4 }}
+                            >
+                                <h2 className="text-xl font-bold text-gray-900">Masuk</h2>
+                                <p className="text-sm text-gray-500 mt-1">Masukkan username dan password Anda</p>
+                            </motion.div>
+
+                            {/* Error message */}
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -5, height: 0 }}
+                                        animate={{ opacity: 1, y: 0, height: "auto" }}
+                                        exit={{ opacity: 0, y: -5, height: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl px-4 py-2.5"
+                                    >
+                                        <X size={14} className="shrink-0" />
+                                        <span>{error}</span>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            {/* Form */}
+                            <form
+                                onSubmit={handleSubmit}
+                                className="space-y-4"
+                            >
+                                <motion.div
+                                    initial={{ y: 15, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ duration: 0.4, delay: 0.5 }}
+                                >
+                                    <InputField label="Username">
+                                        <input
+                                            type="text"
+                                            value={username}
+                                            onChange={e => setUsername(e.target.value)}
+                                            placeholder="Masukkan username"
+                                            className={inputClass}
+                                        />
+                                    </InputField>
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ y: 15, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ duration: 0.4, delay: 0.6 }}
+                                >
+                                    <InputField label="Password">
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            placeholder="Masukkan password"
+                                            className={inputClass}
+                                        />
+                                    </InputField>
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ y: 15, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ duration: 0.4, delay: 0.7 }}
+                                >
+                                    <motion.button
+                                        type="submit"
+                                        className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 shadow-sm shadow-blue-200"
+                                        whileHover={{ scale: 1.01, backgroundColor: "#2563eb" }}
+                                        whileTap={{ scale: 0.99 }}
+                                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                                    >
+                                        Masuk ke Sistem
+                                    </motion.button>
+                                </motion.div>
+                            </form>
+
+                            {/* Footer */}
+                            <motion.p
+                                className="text-center text-xs text-gray-400 mt-6"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: 0.5, delay: 0.9 }}
+                            >
+                                © 2026 A.Y.A Tailor · Versi 1.0
+                            </motion.p>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            </motion.div>
+        </>
     );
 }
 
@@ -938,11 +1113,11 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
     const weekLabels = ["Minggu 1 (1-7)", "Minggu 2 (8-14)", "Minggu 3 (15-21)", "Minggu 4 (22-akhir)"];
 
     const REVENUE_DATA = weekLabels.map((label, weekNum) => {
-        const startDay = weekNum * 7 - 6;
-        const endDay = weekNum === 4 ? new Date(currentYear, currentMonth + 1, 0).getDate() : weekNum * 7;
+        const startDay = weekNum * 7 + 1;
+        const endDay = weekNum === 3 ? new Date(currentYear, currentMonth + 1, 0).getDate() : (weekNum + 1) * 7;
         const pendapatan = orders
             .filter(o => {
-                if (o.status !== "Selesai" || !o.createdAt) return false;
+                if (!o.createdAt) return false;
                 const [year, month, day] = o.createdAt.split('-').map(Number);
                 return year === currentYear && month - 1 === currentMonth && day >= startDay && day <= endDay;
             })
@@ -978,7 +1153,7 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <h3 className="font-bold text-gray-900">Grafik Pendapatan</h3>
-                            <p className="text-xs text-gray-400 mt-0.5">Pendapatan bulan ini per minggu (pesanan selesai)</p>
+                            <p className="text-xs text-gray-400 mt-0.5">Pendapatan bulan ini per minggu (semua status pesanan)</p>
                         </div>
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />Pendapatan</span>
@@ -1183,10 +1358,7 @@ function ServicesPage({ services, onAdd, onEdit, onDelete }: {
                             <tr key={s.id} className="hover:bg-gray-50/60 transition-colors">
                                 <td className="px-5 py-4 text-sm text-gray-400 font-medium">{i + 1}</td>
                                 <td className="px-5 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center"><Scissors size={13} className="text-blue-500" /></div>
-                                        <span className="text-sm font-semibold text-gray-900">{s.name}</span>
-                                    </div>
+                                    <span className="text-sm font-semibold text-gray-900">{s.name}</span>
                                 </td>
                                 <td className="px-5 py-4"><span className="text-sm font-bold text-gray-900">{fmt(s.price)}</span></td>
                                 <td className="px-5 py-4">
@@ -1373,7 +1545,7 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                         <span className="w-6 h-6 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs font-bold shrink-0">1</span> Data Pelanggan
                     </h3>
                     <div className="space-y-4">
-                        <InputField label="Pilih Pelanggan">
+                        <InputField label={<><span className="text-red-500">*</span> Pilih Pelanggan</>}>
                             <select value={customerId} onChange={e => setCustomerId(e.target.value)} className={inputClass}>
                                 <option value="">-- Pilih pelanggan yang sudah terdaftar --</option>
                                 {customers.map(c => (<option key={c.id} value={c.id}>{c.name} ({c.phone})</option>))}
@@ -1407,9 +1579,9 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                                     )}
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <InputField label="Jenis Pakaian"><input type="text" value={item.clothingType} onChange={e => updateItem(item.id, "clothingType", e.target.value)} placeholder="Contoh: Celana Jeans, Kemeja..." className={inputClass} /></InputField>
-                                    <InputField label="Jumlah (pcs)"><input type="number" value={item.qty} onChange={e => updateItem(item.id, "qty", Math.max(1, Number(e.target.value)))} min={1} className={inputClass} /></InputField>
-                                    <InputField label="Jenis Layanan">
+                                    <InputField label={<><span className="text-red-500">*</span> Jenis Pakaian</>}><input type="text" value={item.clothingType} onChange={e => updateItem(item.id, "clothingType", e.target.value)} placeholder="Contoh: Celana Jeans, Kemeja..." className={inputClass} /></InputField>
+                                    <InputField label={<><span className="text-red-500">*</span> Jumlah (pcs)</>}><input type="number" value={item.qty} onChange={e => updateItem(item.id, "qty", Math.max(1, Number(e.target.value)))} min={1} className={inputClass} /></InputField>
+                                    <InputField label={<><span className="text-red-500">*</span> Jenis Layanan</>}>
                                         <select value={item.serviceId} onChange={e => updateItem(item.id, "serviceId", e.target.value)} className={inputClass}>
                                             <option value="">-- Pilih layanan --</option>
                                             {activeServices.map(s => (<option key={s.id} value={s.id}>{s.name} — {fmt(s.price)}</option>))}
@@ -1445,7 +1617,7 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                             <span className="text-gray-500">Subtotal ({items.length} item)</span>
                             <span className="font-semibold">{fmt(subtotal)}</span>
                         </div>
-                        <InputField label="Diskon"><input type="number" value={discount} onChange={e => setDiscount(Math.max(0, Number(e.target.value)))} className={inputClass} /></InputField>
+                        <InputField label="Diskon (Rp)"><input type="number" value={discount} onChange={e => setDiscount(Math.max(0, Number(e.target.value)))} className={inputClass} /></InputField>
                         <div className="flex justify-between text-sm font-bold text-gray-900 pt-2 border-t border-gray-100">
                             <span>Total</span><span>{fmt(total)}</span>
                         </div>
@@ -1903,21 +2075,6 @@ function SettingsPage({ setToast, refreshNotifications }: {
                     <button onClick={save} disabled={saving} className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-60">
                         {saving ? "Menyimpan..." : "Simpan Perubahan"}
                     </button>
-                </div>
-            </div>
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm">
-                <h3 className="font-bold text-gray-900 mb-4">Pengaturan Notifikasi</h3>
-                <div className="space-y-3">
-                    {[
-                        ["Kirim notifikasi WhatsApp saat pesanan selesai", notif1, setNotif1],
-                        ["Kirim pengingat deadline otomatis", notif2, setNotif2],
-                        ["Notifikasi stok bahan habis", notif3, setNotif3],
-                    ].map(([label, val, setter], i) => (
-                        <label key={i} className="flex items-center gap-3 cursor-pointer">
-                            <input type="checkbox" checked={val as boolean} onChange={e => (setter as any)(e.target.checked)} className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500" />
-                            <span className="text-sm text-gray-700">{label as string}</span>
-                        </label>
-                    ))}
                 </div>
             </div>
         </div>
