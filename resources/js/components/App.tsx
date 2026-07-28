@@ -893,11 +893,11 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                     >
                         {/* Logo */}
                         <motion.div
-                            className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-500/20"
-                            whileHover={{ scale: 1.05, rotate: 3 }}
+                            className="w-20 h-20 rounded-2xl mx-auto mb-6 shadow-2xl overflow-hidden"
+                            whileHover={{ scale: 1.05 }}
                             transition={{ type: "spring", stiffness: 300 }}
                         >
-                            <Scissors size={34} className="text-white" />
+                            <img src="/logo.png" alt="A.Y.A Tailor" className="w-full h-full object-cover" />
                         </motion.div>
 
                         <motion.h1
@@ -918,40 +918,6 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                             Sistem manajemen jahit dan permak pakaian yang memudahkan Anda mengelola pesanan, pembayaran, dan pelanggan.
                         </motion.p>
 
-                        {/* Feature list */}
-                        <motion.div
-                            className="space-y-3 text-left"
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                visible: { transition: { staggerChildren: 0.12, delayChildren: 0.5 } },
-                                hidden: {},
-                            }}
-                        >
-                            {[
-                                { icon: ShoppingBag, text: "Catat & kelola pesanan jahit" },
-                                { icon: Wallet, text: "Atur pembayaran dan DP" },
-                                { icon: Printer, text: "Cetak nota thermal otomatis" },
-                                { icon: MessageCircle, text: "Notifikasi WhatsApp otomatis" },
-                            ].map((item) => {
-                                const Icon = item.icon;
-                                return (
-                                    <motion.div
-                                        key={item.text}
-                                        className="flex items-center gap-3 text-sm text-blue-200/80"
-                                        variants={{
-                                            hidden: { x: -20, opacity: 0 },
-                                            visible: { x: 0, opacity: 1, transition: { duration: 0.4 } },
-                                        }}
-                                    >
-                                        <div className="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                            <Icon size={13} className="text-blue-300" />
-                                        </div>
-                                        <span>{item.text}</span>
-                                    </motion.div>
-                                );
-                            })}
-                        </motion.div>
                     </motion.div>
                 </motion.div>
 
