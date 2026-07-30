@@ -16,6 +16,9 @@ Route::get('/', function () {
     return view('app');
 });
 
+// Public tracking page (no auth required)
+Route::get('/track/{invoice}', [OrderController::class, 'track'])->name('track');
+
 // API routes with session-based auth (web middleware)
 Route::middleware('auth')->prefix('api')->group(function () {
     // Auth me

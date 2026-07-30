@@ -14,7 +14,7 @@ import {
     Tooltip, ResponsiveContainer, PieChart, Pie, Cell,
 } from "recharts";
 import { QRCodeSVG } from "qrcode.react";
-import { api, loginApi, logoutApi } from "../lib/api";
+import { api, loginApi, logoutApi, authStorage } from "../lib/api";
 
 type User = { id: string | number; name: string; email: string };
 
@@ -240,6 +240,7 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
     const handlePrint = () => window.print();
     const [orderItems, setOrderItems] = useState<Order["items"]>(order.items || []);
     const [loading, setLoading] = useState(true);
+    const [settings, setSettings] = useState<{ storeName: string; address: string; phone: string; whatsapp: string } | null>(null);
 
     useEffect(() => {
         const fetchOrderDetail = async () => {
@@ -255,6 +256,25 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
         };
         fetchOrderDetail();
     }, [order.id]);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const data = await api.getSettings();
+                if (data) {
+                    setSettings({
+                        storeName: data.storeName || "A.Y.A Tailor",
+                        address: data.address || "Jl. Sudirman No. 45, Bandung",
+                        phone: data.phone || "022-1234567",
+                        whatsapp: data.whatsapp || "081234567890",
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load settings:', err);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     if (loading) {
         return (
@@ -285,13 +305,13 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                     <div className="w-[280px] bg-white font-mono text-[10px] mx-auto shadow-lg rounded-sm">
                         <div className="p-3">
                             <div className="text-center mb-2">
-                                <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center mx-auto mb-1">
-                                    <Scissors size={12} className="text-white" />
+                                <div className="w-10 h-10 mx-auto mb-1 overflow-hidden rounded-lg">
+                                    <img src="/logo.png" alt={settings?.storeName || "A.Y.A Tailor"} className="w-full h-full object-contain" />
                                 </div>
-                                <p className="font-bold text-xs tracking-wider text-gray-900">A.Y.A Tailor</p>
+                                <p className="font-bold text-xs tracking-wider text-gray-900">{settings?.storeName || "A.Y.A Tailor"}</p>
                                 <p className="text-gray-500 text-[9px]">Jasa Jahit & Permak Pakaian</p>
-                                <p className="text-gray-400 text-[9px]">Jl. Sudirman No. 45, Bandung</p>
-                                <p className="text-gray-400 text-[9px]">Telp: 022-1234567</p>
+                                <p className="text-gray-400 text-[9px]">{settings?.address || "Jl. Sudirman No. 45, Bandung"}</p>
+                                <p className="text-gray-400 text-[9px]">Telp: {settings?.phone || "022-1234567"}</p>
                             </div>
                             <div className="border-t border-dashed border-gray-300 my-1.5" />
                             <div className="space-y-0.5 mb-1.5">
@@ -389,7 +409,7 @@ function ReceiptModal({ order, onClose }: { order: Order; onClose: () => void })
                             <div className="flex justify-center my-2">
                                 <div className="w-16 h-16">
                                     <QRCodeSVG
-                                        value={`${window.location.origin}/track/${order.invoice}`}
+                                        value={`${window.location.origin}/track/${encodeURIComponent(order.invoice)}`}
                                         size={64}
                                         level="M"
                                         includeMargin={false}
@@ -842,8 +862,19 @@ function LoginLoadingOverlay() {
 function LoginPage({ onLogin }: { onLogin: (payload: { username: string; password: string }) => void }) {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Load remembered credentials on mount
+    useEffect(() => {
+        const creds = authStorage.getCredentials();
+        if (creds) {
+            setUsername(creds.username);
+            setPassword(creds.password);
+            setRememberMe(true);
+        }
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -854,6 +885,12 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
         setError("");
         setIsLoading(true);
         try {
+            // Save or clear credentials based on "remember me"
+            if (rememberMe) {
+                authStorage.saveCredentials(username, password);
+            } else {
+                authStorage.clearCredentials();
+            }
             await onLogin({ username, password });
         } catch (err: any) {
             setError(err?.message || "Login gagal. Periksa kembali username dan password Anda.");
@@ -886,37 +923,45 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                     transition={{ duration: 0.8, ease: "easeOut" }}
                 >
                     <motion.div
-                        className="text-center text-white max-w-sm"
+                        className="text-center text-white relative"
                         initial={{ y: 30 }}
                         animate={{ y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                     >
-                        {/* Logo */}
+                        {/* Glow effect behind logo */}
                         <motion.div
-                            className="w-20 h-20 rounded-2xl mx-auto mb-6 shadow-2xl overflow-hidden"
-                            whileHover={{ scale: 1.05 }}
-                            transition={{ type: "spring", stiffness: 300 }}
+                            className="absolute inset-0 -z-10 blur-3xl"
+                            style={{
+                                background: "radial-gradient(circle, rgba(59,130,246,0.3) 0%, transparent 70%)",
+                            }}
+                            animate={{
+                                opacity: [0.3, 0.6, 0.3],
+                                scale: [0.8, 1.2, 0.8],
+                            }}
+                            transition={{
+                                duration: 2,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }}
+                        />
+
+                        {/* Logo with continuous animation */}
+                        <motion.div
+                            className="w-48 h-48 rounded-3xl mx-auto shadow-2xl overflow-hidden"
+                            animate={{
+                                scale: [1, 1.08, 1],
+                                rotate: [0, 3, -3, 0],
+                                y: [0, -8, 0],
+                            }}
+                            transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                            }}
+                            whileHover={{ scale: 1.12 }}
                         >
                             <img src="/logo.png" alt="A.Y.A Tailor" className="w-full h-full object-cover" />
                         </motion.div>
-
-                        <motion.h1
-                            className="text-3xl font-bold mb-2 tracking-tight"
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.5, delay: 0.3 }}
-                        >
-                            A.Y.A Tailor
-                        </motion.h1>
-
-                        <motion.p
-                            className="text-blue-200/70 text-sm mb-6 leading-relaxed"
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                        >
-                            Sistem manajemen jahit dan permak pakaian yang memudahkan Anda mengelola pesanan, pembayaran, dan pelanggan.
-                        </motion.p>
 
                     </motion.div>
                 </motion.div>
@@ -935,7 +980,7 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                         transition={{ duration: 0.6, delay: 0.3 }}
                     >
                         {/* Card */}
-                        <div className="bg-white rounded-2xl shadow-2xl p-8">
+                        <div className="backdrop-blur-xl bg-white/95 rounded-3xl shadow-2xl p-10 border border-white/20" style={{ boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1)" }}>
                             {/* Mobile logo */}
                             <motion.div
                                 className="lg:hidden flex justify-center mb-6"
@@ -943,8 +988,8 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                                 animate={{ scale: 1 }}
                                 transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
                             >
-                                <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg">
-                                    <Scissors size={24} className="text-white" />
+                                <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg">
+                                    <img src="/logo.png" alt="A.Y.A Tailor" className="w-full h-full object-cover" />
                                 </div>
                             </motion.div>
 
@@ -955,8 +1000,8 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ duration: 0.4, delay: 0.4 }}
                             >
-                                <h2 className="text-xl font-bold text-gray-900">Masuk</h2>
-                                <p className="text-sm text-gray-500 mt-1">Masukkan username dan password Anda</p>
+                                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Selamat Datang</h2>
+                                <p className="text-sm text-gray-500 mt-1.5">Masuk untuk mengelola toko jahit Anda</p>
                             </motion.div>
 
                             {/* Error message */}
@@ -1013,9 +1058,27 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                                 </motion.div>
 
                                 <motion.div
+                                    className="flex items-center gap-2"
                                     initial={{ y: 15, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     transition={{ duration: 0.4, delay: 0.7 }}
+                                >
+                                    <input
+                                        type="checkbox"
+                                        id="rememberMe"
+                                        checked={rememberMe}
+                                        onChange={e => setRememberMe(e.target.checked)}
+                                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                    />
+                                    <label htmlFor="rememberMe" className="text-sm text-gray-600 cursor-pointer">
+                                        Ingat saya
+                                    </label>
+                                </motion.div>
+
+                                <motion.div
+                                    initial={{ y: 15, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ duration: 0.4, delay: 0.75 }}
                                 >
                                     <motion.button
                                         type="submit"
@@ -1030,14 +1093,16 @@ function LoginPage({ onLogin }: { onLogin: (payload: { username: string; passwor
                             </form>
 
                             {/* Footer */}
-                            <motion.p
-                                className="text-center text-xs text-gray-400 mt-6"
+                            <motion.div
+                                className="mt-8 pt-6 border-t border-gray-100"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ duration: 0.5, delay: 0.9 }}
                             >
-                                © 2026 A.Y.A Tailor · Versi 1.0
-                            </motion.p>
+                                <p className="text-center text-xs text-gray-400">
+                                    © 2026 A.Y.A Tailor · Versi 1.0
+                                </p>
+                            </motion.div>
                         </div>
                     </motion.div>
                 </motion.div>
@@ -1636,7 +1701,6 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
                         <p className="text-sm text-gray-500">Dibuat pada {order.createdAt}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button onClick={onPay} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"><Banknote size={14} /> Bayar</button>
                         <button onClick={setShowReceipt.bind(null, true) as any} className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"><Printer size={14} /> Nota</button>
                         {order.status === "Selesai" && (
                             <button onClick={setShowWhatsApp.bind(null, true) as any} className="flex items-center gap-1.5 px-3 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold hover:bg-green-600 transition-colors"><MessageCircle size={14} /> WhatsApp</button>
@@ -2237,6 +2301,8 @@ export default function App() {
     const [paymentModal, setPaymentModal] = useState(false);
     const [confirm, setConfirm] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
+    const [isInitializing, setIsInitializing] = useState(true);
+
     const loadAll = useCallback(async () => {
         setLoading(true);
         try {
@@ -2248,6 +2314,27 @@ export default function App() {
 
     const [user, setUser] = useState<{ id: string | number; name: string; email: string } | null>(null);
     const [notifRefreshKey, setNotifRefreshKey] = useState(0);
+
+    // Auto-login on app startup if credentials are saved
+    useEffect(() => {
+        const autoLogin = async () => {
+            try {
+                const creds = authStorage.getCredentials();
+                if (creds && creds.username && creds.password) {
+                    const res = await loginApi(creds);
+                    setUser(res.user);
+                    setPage("dashboard");
+                    await loadAll();
+                }
+            } catch (err) {
+                console.error('Auto-login failed:', err);
+                authStorage.clearCredentials();
+            } finally {
+                setIsInitializing(false);
+            }
+        };
+        autoLogin();
+    }, []);
 
     const handleLogin = async (payload: { username: string; password: string }) => {
         try {
@@ -2355,6 +2442,28 @@ export default function App() {
         { icon: SettingsIcon, label: "Pengaturan", page: "settings" },
     ];
 
+    if (isInitializing) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0F2544] via-[#1a3a6b] to-[#0F2544]">
+                <div className="text-center">
+                    <motion.div
+                        className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-4"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                    <motion.p
+                        className="text-white text-sm"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        Memuat aplikasi...
+                    </motion.p>
+                </div>
+            </div>
+        );
+    }
+
     if (page === "login") {
         return <LoginPage onLogin={handleLogin} />;
     }
@@ -2363,7 +2472,7 @@ export default function App() {
         <div className="min-h-screen bg-[#F5F7FA] flex">
             <aside className={`${sidebarOpen ? "w-64" : "w-16"} bg-[#0F2544] transition-all duration-200 flex flex-col shrink-0 fixed h-screen overflow-y-auto`}>
                 <div className="p-4 flex items-center gap-3 border-b border-white/10">
-                    <div className="w-9 h-9 bg-blue-500 rounded-xl flex items-center justify-center shrink-0"><Scissors size={18} className="text-white" /></div>
+                    <img src="/logo.png" alt="A.Y.A Tailor" className="w-12 h-12 object-contain shrink-0" />
                     {sidebarOpen && (<div className="min-w-0"><p className="text-white font-bold text-sm leading-tight">A.Y.A Tailor</p><p className="text-blue-200 text-[10px]">Manajemen Jahit</p></div>)}
                 </div>
                 <nav className="flex-1 p-3 space-y-1">

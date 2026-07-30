@@ -10,6 +10,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -419,5 +420,13 @@ class OrderController extends Controller
             'cancelled' => 'Dibatalkan',
             default => $status
         };
+    }
+
+    // Public tracking page (no auth required)
+    public function track($invoice)
+    {
+        $order = Order::with(['customer', 'orderItems'])->where('order_number', $invoice)->firstOrFail();
+        $settings = DB::table('settings')->get()->pluck('value', 'key');
+        return view('orders.track', compact('order', 'settings'));
     }
 }

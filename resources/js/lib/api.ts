@@ -55,6 +55,26 @@ export async function loginApi(data: { username: string; password: string }) {
     return body;
 }
 
+// Store credentials for "remember me" feature
+export const authStorage = {
+    getCredentials: (): { username: string; password: string } | null => {
+        try {
+            const stored = localStorage.getItem('remembered_credentials');
+            return stored ? JSON.parse(stored) : null;
+        } catch {
+            return null;
+        }
+    },
+
+    saveCredentials: (username: string, password: string) => {
+        localStorage.setItem('remembered_credentials', JSON.stringify({ username, password }));
+    },
+
+    clearCredentials: () => {
+        localStorage.removeItem('remembered_credentials');
+    }
+};
+
 export async function logoutApi() {
     const res = await fetch('/logout', {
         method: 'POST',
