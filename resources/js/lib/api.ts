@@ -179,6 +179,16 @@ export const api = {
 
     // Dashboard
     getDashboardStats: () => fetchApi<any>('/dashboard/stats'),
+    getAISummary: () => fetchApi<any>('/dashboard/ai-summary'),
+    getCustomerLoyalty: () => fetchApi<any>('/dashboard/customer-loyalty'),
+    estimateCompletion: (data: { service_id: string; item_count: number; difficulty: string }) =>
+        fetchApi<any>('/orders/estimate-completion', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    // AI Priority Recommendations
+    getPriorityRecommendations: () => fetchApi<any>('/orders/priority-recommendations'),
 
     // Payments
     getPayments: (orderId: string) => fetchApi<any[]>(`/orders/${orderId}/payments`),
