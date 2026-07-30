@@ -1227,11 +1227,11 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
 
     const stats = [
         { icon: ShoppingBag, label: "Total Pesanan Hari Ini", value: String(todayOrders.length), sub: new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }), yellow: true },
-        { icon: Clock, label: "Sedang Diproses", value: String(inProgress.length), sub: "Menunggu + Diproses + Finishing", yellow: false },
-        { icon: CheckCircle2, label: "Pesanan Selesai", value: String(done.length), sub: "Siap diambil pelanggan", yellow: false },
-        { icon: Package, label: "Belum Diambil", value: String(notPickedUp.length), sub: "Perlu notifikasi", yellow: false },
+        { icon: Clock, label: "Sedang Diproses", value: String(inProgress.length), sub: "Menunggu + Diproses + Finishing", yellow: true },
+        { icon: CheckCircle2, label: "Pesanan Selesai", value: String(done.length), sub: "Siap diambil pelanggan", yellow: true },
+        { icon: Package, label: "Belum Diambil", value: String(notPickedUp.length), sub: "Perlu notifikasi", yellow: true },
         { icon: Wallet, label: "Pendapatan Hari Ini", value: fmt(todayRevenue), sub: "Dari uang muka", yellow: true },
-        { icon: TrendingUp, label: "Pendapatan Bulan Ini", value: fmt(monthlyRevenue), sub: new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" }), yellow: false },
+        { icon: TrendingUp, label: "Pendapatan Bulan Ini", value: fmt(monthlyRevenue), sub: new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" }), yellow: true },
     ];
 
     const currentMonth = now.getMonth();
@@ -2168,9 +2168,9 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
         <div className="space-y-6">
             <div className="grid grid-cols-4 gap-4">
                 <ChStat icon={TrendingUp} label="Total Pendapatan" value={fmt(totalPendapatan)} sub={`Bulan ${new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`} yellow={true} />
-                <ChStat icon={TrendingDown} label="Total Pengeluaran" value={fmt(totalPengeluaran)} sub={`Bulan ${new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`} yellow={false} />
-                <ChStat icon={Wallet} label="Laba Bersih" value={fmt(labaBersih)} sub={labaBersih >= 0 ? "Untung" : "Rugi"} yellow={labaBersih >= 0} />
-                <ChStat icon={ShoppingBag} label="Total Pesanan" value={String(orders.length)} sub="Semua periode" yellow={false} />
+                <ChStat icon={TrendingDown} label="Total Pengeluaran" value={fmt(totalPengeluaran)} sub={`Bulan ${new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`} yellow={true} />
+                <ChStat icon={Wallet} label="Laba Bersih" value={fmt(labaBersih)} sub={labaBersih >= 0 ? "Untung" : "Rugi"} yellow={true} />
+                <ChStat icon={ShoppingBag} label="Total Pesanan" value={String(orders.length)} sub="Semua periode" yellow={true} />
             </div>
 
             <ChCard>
