@@ -276,9 +276,9 @@ function ChBackdrop({ children }: { children: any }) {
     );
 }
 
-function ChModal({ children, className = "" }: any) {
+function ChModal({ children, className = "", style }: any) {
     return (
-        <div className={`ch-modal ${className}`}>
+        <div className={`ch-modal ${className}`} style={style}>
             {children}
         </div>
     );
@@ -721,7 +721,7 @@ function CustomerFormModal({ initial, onSave, onClose }: {
 
     return (
         <ChBackdrop>
-            <ChModal className="max-w-md">
+            <ChModal className="max-w-2xl" style={{ maxWidth: '40rem' }}>
                 <ChModalHeader onClose={onClose}>
                     {initial ? "Edit Pelanggan" : "Tambah Pelanggan"}
                 </ChModalHeader>
@@ -775,7 +775,7 @@ function ServiceFormModal({ initial, onSave, onClose }: {
 
     return (
         <ChBackdrop>
-            <ChModal className="max-w-md">
+            <ChModal className="max-w-2xl" style={{ maxWidth: '40rem' }}>
                 <ChModalHeader onClose={onClose}>
                     {initial ? "Edit Layanan" : "Tambah Layanan"}
                 </ChModalHeader>
@@ -2071,10 +2071,10 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
                         <>
                             <ResponsiveContainer width="100%" height={200}>
                                 <PieChart>
-                                    <Pie data={EXPENSE_PIE_DATA} cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={3} dataKey="value">
+                                    <Pie data={EXPENSE_PIE_DATA} cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={3} dataKey="value" nameKey="name">
                                         {EXPENSE_PIE_DATA.map((_, index) => (<Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />))}
                                     </Pie>
-                                    <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${CH.hairline}`, backgroundColor: CH.surfaceCard, color: CH.onDark }} />
+                                    <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${CH.hairline}`, backgroundColor: CH.surfaceCard, color: CH.onDark }} labelStyle={{ color: CH.bodyStrong }} itemStyle={{ color: CH.body }} />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="space-y-1.5 mt-2">
@@ -2223,10 +2223,10 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                         <>
                             <ResponsiveContainer width="100%" height={180}>
                                 <PieChart>
-                                    <Pie data={EXPENSE_PIE_DATA} dataKey="value" innerRadius={40} outerRadius={75} paddingAngle={3}>
+                                    <Pie data={EXPENSE_PIE_DATA} dataKey="value" nameKey="name" innerRadius={40} outerRadius={75} paddingAngle={3}>
                                         {EXPENSE_PIE_DATA.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
                                     </Pie>
-                                    <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${CH.hairline}`, backgroundColor: CH.surfaceCard, color: CH.onDark }} />
+                                    <Tooltip formatter={(v: number) => fmt(v)} contentStyle={{ fontSize: 12, borderRadius: 8, border: `1px solid ${CH.hairline}`, backgroundColor: CH.surfaceCard, color: CH.onDark }} labelStyle={{ color: CH.bodyStrong }} itemStyle={{ color: CH.body }} />
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="space-y-1.5 mt-2">

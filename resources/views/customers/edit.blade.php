@@ -3,8 +3,8 @@
 @section('title', 'Edit Pelanggan')
 
 @section('content')
-    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
-        <h2 class="text-2xl font-bold mb-6">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow p-8">
+        <h2 class="text-2xl font-bold mb-8">
             <i class="fas fa-user-edit text-yellow-600"></i> Edit Pelanggan
         </h2>
 
@@ -12,57 +12,65 @@
             @csrf
             @method('PUT')
 
-            <div class="mb-4">
-                <label class="block text-gray-700 font-semibold mb-2">Nama Lengkap *</label>
-                <input type="text" name="name" value="{{ old('name', $customer->name) }}" required
-                    class="w-full border rounded px-3 py-2 @error('name') border-red-500 @enderror">
-                @error('name')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="mb-2">
+                    <label class="block text-gray-700 font-semibold mb-2 text-[15px]">Nama Lengkap *</label>
+                    <input type="text" name="name" value="{{ old('name', $customer->name) }}" required
+                        class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-[15px] focus:border-blue-500 focus:outline-none @error('name') border-red-500 @enderror"
+                        placeholder="Masukkan nama lengkap">
+                    @error('name')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-2">
+                    <label class="block text-gray-700 font-semibold mb-2 text-[15px]">No. Telepon *</label>
+                    <input type="text" name="phone" value="{{ old('phone', $customer->phone) }}" required
+                        class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-[15px] focus:border-blue-500 focus:outline-none @error('phone') border-red-500 @enderror"
+                        placeholder="Contoh: 08123456789">
+                    @error('phone')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-2">
+                    <label class="block text-gray-700 font-semibold mb-2 text-[15px]">No. WhatsApp</label>
+                    <input type="text" name="whatsapp" value="{{ old('whatsapp', $customer->whatsapp) }}"
+                        class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-[15px] focus:border-blue-500 focus:outline-none @error('whatsapp') border-red-500 @enderror"
+                        placeholder="Contoh: 08123456789">
+                    @error('whatsapp')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="mb-2">
+                    <label class="block text-gray-700 font-semibold mb-2 text-[15px]">Email</label>
+                    <input type="email" name="email" value="{{ old('email', $customer->email) }}"
+                        class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-[15px] focus:border-blue-500 focus:outline-none @error('email') border-red-500 @enderror"
+                        placeholder="contoh@email.com">
+                    @error('email')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
 
-            <div class="mb-4">
-                <label class="block text-gray-700 font-semibold mb-2">No. Telepon *</label>
-                <input type="text" name="phone" value="{{ old('phone', $customer->phone) }}" required
-                    class="w-full border rounded px-3 py-2 @error('phone') border-red-500 @enderror">
-                @error('phone')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 font-semibold mb-2">No. WhatsApp</label>
-                <input type="text" name="whatsapp" value="{{ old('whatsapp', $customer->whatsapp) }}"
-                    class="w-full border rounded px-3 py-2 @error('whatsapp') border-red-500 @enderror"
-                    placeholder="Contoh: 08123456789">
-                @error('whatsapp')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-gray-700 font-semibold mb-2">Alamat</label>
+            <div class="mb-6 mt-2">
+                <label class="block text-gray-700 font-semibold mb-2 text-[15px]">Alamat</label>
                 <textarea name="address" rows="3"
-                    class="w-full border rounded px-3 py-2 @error('address') border-red-500 @enderror">{{ old('address', $customer->address) }}</textarea>
+                    class="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-[15px] focus:border-blue-500 focus:outline-none @error('address') border-red-500 @enderror"
+                    placeholder="Masukkan alamat lengkap">{{ old('address', $customer->address) }}</textarea>
                 @error('address')
                     <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
-            <div class="mb-6">
-                <label class="block text-gray-700 font-semibold mb-2">Email</label>
-                <input type="email" name="email" value="{{ old('email', $customer->email) }}"
-                    class="w-full border rounded px-3 py-2 @error('email') border-red-500 @enderror">
-                @error('email')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <div class="flex justify-between">
-                <a href="{{ route('customers.index') }}" class="bg-gray-500 text-white px-6 py-2 rounded hover:bg-gray-600">
+            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                <a href="{{ route('customers.index') }}"
+                    class="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 transition">
                     <i class="fas fa-arrow-left"></i> Kembali
                 </a>
-                <button type="submit" class="bg-yellow-600 text-white px-6 py-2 rounded hover:bg-yellow-700">
+                <button type="submit"
+                    class="bg-yellow-600 text-white px-8 py-3 rounded-lg hover:bg-yellow-700 transition font-semibold">
                     <i class="fas fa-save"></i> Update
                 </button>
             </div>

@@ -19,30 +19,35 @@
             }
         }
     </style>
+    @yield('styles')
 </head>
 
 <body class="bg-gray-50">
-    <nav class="bg-blue-600 text-white no-print">
-        <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-scissors text-2xl"></i>
-                    <h1 class="text-xl font-bold">SimJahit</h1>
-                </div>
-                <div class="hidden md:flex space-x-6">
-                    <a href="{{ route('dashboard') }}" class="hover:text-blue-200">
-                        <i class="fas fa-home"></i> Dashboard
-                    </a>
-                    <a href="{{ route('customers.index') }}" class="hover:text-blue-200">
-                        <i class="fas fa-users"></i> Pelanggan
-                    </a>
-                    <a href="{{ route('orders.index') }}" class="hover:text-blue-200">
-                        <i class="fas fa-clipboard-list"></i> Pesanan
-                    </a>
+    @if(!isset($hideNav) || !$hideNav)
+        <nav class="bg-blue-600 text-white no-print">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-scissors text-2xl"></i>
+                        <h1 class="text-xl font-bold">SimJahit</h1>
+                    </div>
+                    @auth
+                        <div class="hidden md:flex space-x-6">
+                            <a href="/" class="hover:text-blue-200">
+                                <i class="fas fa-home"></i> Dashboard
+                            </a>
+                            <a href="/" class="hover:text-blue-200">
+                                <i class="fas fa-users"></i> Pelanggan
+                            </a>
+                            <a href="/" class="hover:text-blue-200">
+                                <i class="fas fa-clipboard-list"></i> Pesanan
+                            </a>
+                        </div>
+                    @endauth
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
+    @endif
 
     <main class="container mx-auto px-4 py-8">
         @if(session('success'))
