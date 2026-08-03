@@ -247,11 +247,11 @@ function ChFilterChip({ children, active = false, count, onClick, className = ""
     return (
         <button
             onClick={onClick}
-            className={`ch-filter-chip ${active ? 'active' : ''} ${className}`}
+            className={`ch-filter-chip shrink-0 whitespace-nowrap ${active ? 'active' : ''} ${className}`}
         >
             {children}
             {count !== undefined && (
-                <span className={`text-xs px-2 py-0.5 rounded-full ${active ? 'bg-ch-surface-elevated text-ch-body' : 'bg-ch-surface-soft text-ch-muted'}`}>
+                <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full ${active ? 'bg-ch-surface-elevated text-ch-body' : 'bg-ch-surface-soft text-ch-muted'}`}>
                     {count}
                 </span>
             )}
@@ -286,8 +286,8 @@ function ChModal({ children, className = "", style }: any) {
 
 function ChModalHeader({ children, onClose }: any) {
     return (
-        <div className="flex items-center justify-between px-6 py-4 border-b border-ch-hairline">
-            <h3 className="text-base font-semibold text-ch-on-dark">{children}</h3>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-ch-hairline">
+            <h3 className="text-sm sm:text-base font-semibold text-ch-on-dark">{children}</h3>
             {onClose && (
                 <ChIconButton onClick={onClose}>
                     <X size={16} />
@@ -299,7 +299,7 @@ function ChModalHeader({ children, onClose }: any) {
 
 function ChModalBody({ children, className = "" }: any) {
     return (
-        <div className={`p-6 space-y-4 ${className}`}>
+        <div className={`p-4 sm:p-6 space-y-4 ${className}`}>
             {children}
         </div>
     );
@@ -307,7 +307,7 @@ function ChModalBody({ children, className = "" }: any) {
 
 function ChModalFooter({ children, className = "" }: any) {
     return (
-        <div className={`px-6 py-4 border-t border-ch-hairline flex gap-3 ${className}`}>
+        <div className={`px-4 sm:px-6 py-4 border-t border-ch-hairline flex gap-3 ${className}`}>
             {children}
         </div>
     );
@@ -317,7 +317,7 @@ function ChModalFooter({ children, className = "" }: any) {
 
 function ChFilterPills({ tabs, activeTab, onTabChange, className = "" }: any) {
     return (
-        <div className={`flex flex-wrap gap-2 ${className}`}>
+        <div className={`flex gap-1.5 sm:gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible pb-1 sm:pb-0 ${className}`}>
             {tabs.map((tab: any) => {
                 const isActive = (typeof tab === 'string' ? tab : tab.key) === activeTab;
                 const label = typeof tab === 'string' ? tab : tab.label;
@@ -341,15 +341,15 @@ function ChFilterPills({ tabs, activeTab, onTabChange, className = "" }: any) {
 
 function ChStat({ icon: Icon, label, value, sub, yellow = false }: any) {
     return (
-        <div className="ch-stat">
-            <div className="flex items-start justify-between mb-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${yellow ? 'bg-ch-primary text-ch-on-primary' : 'bg-ch-surface-elevated text-ch-on-dark'}`}>
-                    <Icon size={18} />
+        <div className="ch-stat p-4 sm:p-6">
+            <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center ${yellow ? 'bg-ch-primary text-ch-on-primary' : 'bg-ch-surface-elevated text-ch-on-dark'}`}>
+                    <Icon size={16} />
                 </div>
             </div>
-            <p className={`text-[32px] font-bold leading-none mb-1 ${yellow ? 'text-ch-primary' : 'text-ch-on-dark'}`}>{value}</p>
-            <p className="text-sm font-medium text-ch-body-strong">{label}</p>
-            {sub && <p className="text-xs text-ch-muted mt-1">{sub}</p>}
+            <p className={`text-xl sm:text-[32px] font-bold leading-none mb-1 ${yellow ? 'text-ch-primary' : 'text-ch-on-dark'}`}>{value}</p>
+            <p className="text-xs sm:text-sm font-medium text-ch-body-strong">{label}</p>
+            {sub && <p className="text-[10px] sm:text-xs text-ch-muted mt-1">{sub}</p>}
         </div>
     );
 }
@@ -981,11 +981,11 @@ function LoginLoadingOverlay() {
                         <motion.span className="text-ch-on-dark font-semibold text-base">
                             Memverifikasi Akun
                         </motion.span>
-                        <div className="flex gap-0.5 ml-1">
+                        <div className="flex gap-1.5 ml-1.5">
                             {[0, 1, 2].map((i) => (
                                 <motion.span
                                     key={i}
-                                    className="w-1.5 h-1.5 bg-ch-primary/60 rounded-full"
+                                    className="w-1.5 h-1.5 bg-ch-primary/60 rounded-full shrink-0"
                                     animate={{ opacity: [0.3, 1, 0.3] }}
                                     transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: "easeInOut" }}
                                 />
@@ -1254,7 +1254,7 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
     return (
         <div className="space-y-6">
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {stats.map(stat => (
                     <ChStat key={stat.label} icon={stat.icon} label={stat.label} value={stat.value} sub={stat.sub} yellow={stat.yellow} />
                 ))}
@@ -1262,14 +1262,14 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
 
             {/* AI Summary - ClickHouse yellow band style */}
             {!loadingSummary && aiSummary && (
-                <div className="ch-cta-band">
-                    <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-ch-on-primary/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                            <Sparkles size={18} className="text-ch-on-primary" />
+                <div className="ch-cta-band p-4 sm:p-6">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-ch-on-primary/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                            <Sparkles size={16} className="text-ch-on-primary" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-ch-on-primary/60 uppercase tracking-wider mb-1">Ringkasan AI</h3>
-                            <p className="text-lg font-bold text-ch-on-primary leading-relaxed">{aiSummary}</p>
+                            <h3 className="text-xs sm:text-sm font-semibold text-ch-on-primary/60 uppercase tracking-wider mb-1">Ringkasan AI</h3>
+                            <p className="text-sm sm:text-lg font-bold text-ch-on-primary leading-relaxed">{aiSummary}</p>
                         </div>
                     </div>
                 </div>
@@ -1278,14 +1278,14 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
             {/* Customer Loyalty - ClickHouse dark card */}
             {!loadingLoyalty && loyaltySummary && (
                 <ChCard>
-                    <ChCardBody>
-                        <div className="flex items-start gap-4">
-                            <div className="w-10 h-10 bg-ch-surface-elevated rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                                <User size={18} className="text-ch-primary" />
+                    <ChCardBody className="p-4 sm:p-6">
+                        <div className="flex items-start gap-3 sm:gap-4">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-ch-surface-elevated rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                                <User size={16} className="text-ch-primary" />
                             </div>
                             <div className="flex-1">
-                                <h3 className="text-sm font-semibold text-ch-muted uppercase tracking-wider mb-1">Analisis Pelanggan Tetap</h3>
-                                <p className="text-base text-ch-body leading-relaxed">{loyaltySummary}</p>
+                                <h3 className="text-xs sm:text-sm font-semibold text-ch-muted uppercase tracking-wider mb-1">Analisis Pelanggan Tetap</h3>
+                                <p className="text-sm sm:text-base text-ch-body leading-relaxed">{loyaltySummary}</p>
                                 {loyalCustomers.length > 0 && (
                                     <div className="mt-4 space-y-2">
                                         {loyalCustomers.slice(0, 3).map((customer, index) => (
@@ -1311,19 +1311,19 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
             )}
 
             {/* Charts */}
-            <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 ch-card">
-                    <div className="p-6">
-                        <div className="flex items-center justify-between mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 ch-card">
+                    <div className="p-4 sm:p-6">
+                        <div className="flex items-center justify-between mb-4 sm:mb-6">
                             <div>
-                                <h3 className="text-base font-semibold text-ch-on-dark">Grafik Pendapatan</h3>
-                                <p className="text-xs text-ch-muted mt-0.5">Pendapatan bulan ini per minggu</p>
+                                <h3 className="text-sm sm:text-base font-semibold text-ch-on-dark">Grafik Pendapatan</h3>
+                                <p className="text-[10px] sm:text-xs text-ch-muted mt-0.5">Pendapatan bulan ini per minggu</p>
                             </div>
-                            <div className="flex items-center gap-4 text-xs text-ch-muted">
-                                <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-ch-primary inline-block" />Pendapatan</span>
+                            <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-ch-muted">
+                                <span className="flex items-center gap-1.5"><span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-ch-primary inline-block" />Pendapatan</span>
                             </div>
                         </div>
-                        <ResponsiveContainer width="100%" height={200}>
+                        <ResponsiveContainer width="100%" height={150}>
                             <AreaChart data={REVENUE_DATA} margin={{ left: -10, right: 5 }}>
                                 <defs>
                                     <linearGradient id="gRevCH" x1="0" y1="0" x2="0" y2="1">
@@ -1342,9 +1342,9 @@ function DashboardPage({ orders, setPage, setSelectedOrder, setShowWhatsApp, onL
                 </div>
 
                 <div className="ch-card">
-                    <div className="p-6">
-                        <h3 className="text-base font-semibold text-ch-on-dark mb-0.5">Layanan Terlaris</h3>
-                        <p className="text-xs text-ch-muted mb-4">Periode ini</p>
+                    <div className="p-4 sm:p-6">
+                        <h3 className="text-sm sm:text-base font-semibold text-ch-on-dark mb-0.5">Layanan Terlaris</h3>
+                        <p className="text-[10px] sm:text-xs text-ch-muted mb-3 sm:mb-4">Periode ini</p>
                         {(() => {
                             const counts: Record<string, number> = {};
                             orders.forEach(o => { counts[o.service] = (counts[o.service] || 0) + 1; });
@@ -1434,14 +1434,14 @@ function CustomersPage({ customers, orders, onAdd, onEdit, onDelete, onShowDetai
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <ChSearchInput
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Cari nama atau nomor WhatsApp..."
-                    className="flex-1 max-w-sm"
+                    className="flex-1 sm:max-w-sm"
                 />
-                <ChButtonPrimary onClick={onAdd} className="ml-auto">
+                <ChButtonPrimary onClick={onAdd} className="sm:ml-auto w-full sm:w-auto">
                     <Plus size={15} /> Tambah Pelanggan
                 </ChButtonPrimary>
             </div>
@@ -1507,7 +1507,7 @@ function ServicesPage({ services, onAdd, onEdit, onDelete }: {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="flex gap-2">
                     <div className="ch-card px-4 py-2 text-sm">
                         <span className="text-ch-muted">Aktif: </span>
@@ -1518,7 +1518,7 @@ function ServicesPage({ services, onAdd, onEdit, onDelete }: {
                         <span className="font-semibold text-ch-muted">{services.length - active}</span>
                     </div>
                 </div>
-                <ChButtonPrimary onClick={onAdd}>
+                <ChButtonPrimary onClick={onAdd} className="sm:ml-auto w-full sm:w-auto">
                     <Plus size={15} /> Tambah Layanan
                 </ChButtonPrimary>
             </div>
@@ -1598,14 +1598,14 @@ function OrdersPage({ orders, setPage, setSelectedOrder, onDelete, onLoadDetail 
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <ChSearchInput
                     value={search}
                     onChange={e => setSearch(e.target.value)}
                     placeholder="Cari invoice atau nama pelanggan..."
-                    className="flex-1 max-w-sm"
+                    className="flex-1 sm:max-w-sm"
                 />
-                <ChButtonPrimary onClick={() => setPage("new-transaction")} className="ml-auto">
+                <ChButtonPrimary onClick={() => setPage("new-transaction")} className="sm:ml-auto w-full sm:w-auto">
                     <Plus size={15} /> Pesanan Baru
                 </ChButtonPrimary>
             </div>
@@ -1749,8 +1749,8 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
     };
 
     return (
-        <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
                 <ChCard>
                     <ChCardBody>
                         <h3 className="text-base font-semibold text-ch-on-dark mb-4">Data Pelanggan</h3>
@@ -1762,7 +1762,7 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                                 </select>
                             </InputField>
                             {cust && (
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <InputField label="Nomor WhatsApp"><input value={cust.phone} readOnly className="ch-input-readonly" /></InputField>
                                     <InputField label="Alamat"><input value={cust.address} readOnly className="ch-input-readonly" /></InputField>
                                 </div>
@@ -1788,7 +1788,7 @@ function NewTransactionPage({ services, customers, setPage, onCreate }: {
                                             <ChIconButton onClick={() => removeItem(item.id)} title="Hapus item"><Trash2 size={14} /></ChIconButton>
                                         )}
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <InputField label={<><span className="text-ch-accent-rose">*</span> Jenis Pakaian</>}><input type="text" value={item.clothingType} onChange={e => updateItem(item.id, "clothingType", e.target.value)} placeholder="Contoh: Celana Jeans, Kemeja..." className="ch-input" /></InputField>
                                         <InputField label={<><span className="text-ch-accent-rose">*</span> Jumlah (pcs)</>}><input type="number" value={item.qty} onChange={e => updateItem(item.id, "qty", Math.max(1, Number(e.target.value)))} min={1} className="ch-input" /></InputField>
                                         <InputField label={<><span className="text-ch-accent-rose">*</span> Jenis Layanan</>}>
@@ -1927,7 +1927,7 @@ function OrderDetailPage({ order, setPage, setShowWhatsApp, setShowReceipt, onAd
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-6 mb-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                         <div>
                             <h3 className="text-sm font-semibold text-ch-muted uppercase tracking-wider mb-3">Informasi Pelanggan</h3>
                             <div className="flex items-center gap-3">
@@ -2018,18 +2018,18 @@ function ExpensesPage({ expenses, onAdd, onEdit, onDelete }: {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div className="ch-card px-4 py-2 text-sm">
                     <span className="text-ch-muted">Total Pengeluaran: </span>
                     <span className="font-semibold text-ch-accent-rose">{fmt(total)}</span>
                 </div>
-                <ChButtonPrimary onClick={onAdd}>
+                <ChButtonPrimary onClick={onAdd} className="sm:ml-auto w-full sm:w-auto">
                     <Plus size={15} /> Tambah Pengeluaran
                 </ChButtonPrimary>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 ch-card">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 ch-card">
                     <ChTable>
                         <ChTableHead>
                             <tr>
@@ -2166,7 +2166,7 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
 
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <ChStat icon={TrendingUp} label="Total Pendapatan" value={fmt(totalPendapatan)} sub={`Bulan ${new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`} yellow={true} />
                 <ChStat icon={TrendingDown} label="Total Pengeluaran" value={fmt(totalPengeluaran)} sub={`Bulan ${new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}`} yellow={true} />
                 <ChStat icon={Wallet} label="Laba Bersih" value={fmt(labaBersih)} sub={labaBersih >= 0 ? "Untung" : "Rugi"} yellow={true} />
@@ -2174,15 +2174,15 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
             </div>
 
             <ChCard>
-                <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
+                <div className="p-4 sm:p-6">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div>
-                            <h3 className="text-base font-semibold text-ch-on-dark">Grafik Pendapatan & Pengeluaran</h3>
-                            <p className="text-xs text-ch-muted mt-0.5">Per minggu - {new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}</p>
+                            <h3 className="text-sm sm:text-base font-semibold text-ch-on-dark">Grafik Pendapatan & Pengeluaran</h3>
+                            <p className="text-[10px] sm:text-xs text-ch-muted mt-0.5">Per minggu - {new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}</p>
                         </div>
-                        <div className="flex items-center gap-4 text-xs text-ch-muted">
-                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-ch-primary inline-block" />Pendapatan</span>
-                            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-ch-muted inline-block" />Pengeluaran</span>
+                        <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-ch-muted">
+                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-ch-primary inline-block" />Pendapatan</span>
+                            <span className="flex items-center gap-1.5"><span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-ch-muted inline-block" />Pengeluaran</span>
                         </div>
                     </div>
                     <ResponsiveContainer width="100%" height={300}>
@@ -2202,8 +2202,8 @@ function ReportsPage({ orders, expenses }: { orders: Order[]; expenses: Expense[
                 </div>
             </ChCard>
 
-            <div className="grid grid-cols-3 gap-4">
-                <div className="col-span-2 ch-card p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2 ch-card p-6">
                     <h3 className="text-base font-semibold text-ch-on-dark mb-4">Layanan Terlaris</h3>
                     {TOP_SERVICES_DATA.length === 0 ? <p className="text-sm text-ch-muted">Belum ada data.</p> : (
                         <ResponsiveContainer width="100%" height={240}>
@@ -2312,7 +2312,7 @@ function SettingsPage({ setToast, refreshNotifications }: {
                     <div className="space-y-4">
                         <InputField label="Nama Toko"><input className="ch-input" value={storeName} onChange={e => setStoreName(e.target.value)} /></InputField>
                         <InputField label="Alamat"><textarea className="ch-textarea" rows={2} value={address} onChange={e => setAddress(e.target.value)} /></InputField>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <InputField label="Nomor Telepon"><input className="ch-input" value={phone} onChange={e => setPhone(e.target.value)} /></InputField>
                             <InputField label="Nomor WhatsApp"><input className="ch-input" value={wa} onChange={e => setWa(e.target.value)} /></InputField>
                         </div>
@@ -2420,47 +2420,55 @@ function NotificationDropdown({ onNavigate, refreshTrigger }: {
                     </span>
                 )}
             </ChIconButton>
-            {open && (
-                <div className="absolute right-0 top-full mt-2 w-[420px] bg-ch-surface-card border border-ch-hairline rounded-xl overflow-hidden z-50">
-                    <div className="flex items-center justify-between px-5 py-3.5 border-b border-ch-hairline">
-                        <div>
-                            <h3 className="font-semibold text-ch-on-dark text-sm">Notifikasi</h3>
-                            <p className="text-xs text-ch-muted mt-0.5">{unreadCount > 0 ? `${unreadCount} belum dibaca` : 'Semua sudah dibaca'}</p>
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] sm:w-[420px] max-w-[420px] bg-ch-surface-card border border-ch-hairline rounded-xl overflow-hidden z-50"
+                    >
+                        <div className="flex items-center justify-between px-5 py-3.5 border-b border-ch-hairline">
+                            <div>
+                                <h3 className="font-semibold text-ch-on-dark text-sm">Notifikasi</h3>
+                                <p className="text-xs text-ch-muted mt-0.5">{unreadCount > 0 ? `${unreadCount} belum dibaca` : 'Semua sudah dibaca'}</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                {unreadCount > 0 && <button onClick={handleMarkAllRead} className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-ch-primary hover:bg-ch-surface-elevated rounded-lg transition-colors"><CheckCheck size={13} /> Baca Semua</button>}
+                                {notifications.length > 0 && <button onClick={handleClearAll} className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-ch-accent-rose hover:bg-ch-surface-elevated rounded-lg transition-colors"><Trash size={13} /> Hapus</button>}
+                            </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                            {unreadCount > 0 && <button onClick={handleMarkAllRead} className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-ch-primary hover:bg-ch-surface-elevated rounded-lg transition-colors"><CheckCheck size={13} /> Baca Semua</button>}
-                            {notifications.length > 0 && <button onClick={handleClearAll} className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-ch-accent-rose hover:bg-ch-surface-elevated rounded-lg transition-colors"><Trash size={13} /> Hapus</button>}
+                        <div className="max-h-[400px] overflow-y-auto">
+                            {notifications.length === 0 ? (
+                                <div className="py-12 text-center"><BellOff size={32} className="mx-auto text-ch-hairline mb-3" /><p className="text-sm text-ch-muted">Tidak ada notifikasi</p></div>
+                            ) : (
+                                notifications.map((notif) => (
+                                    <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`flex items-start gap-3.5 px-5 py-3.5 cursor-pointer transition-all hover:bg-ch-surface-soft border-b border-ch-hairline last:border-0 ${!notif.is_read ? 'bg-ch-surface-soft' : ''}`}>
+                                        <div className="w-9 h-9 bg-ch-surface-elevated rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                                            {(() => {
+                                                const IconComponent = NOTIF_ICONS[notif.icon || ''] || Bell;
+                                                return <IconComponent size={16} className="text-ch-primary" />;
+                                            })()}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <p className={`text-sm leading-tight ${!notif.is_read ? 'font-semibold text-ch-on-dark' : 'text-ch-body'}`}>{notif.title}</p>
+                                                {!notif.is_read && <span className="w-2 h-2 bg-ch-primary rounded-full shrink-0 mt-1.5" />}
+                                            </div>
+                                            <p className="text-xs text-ch-muted mt-0.5 line-clamp-2">{notif.message}</p>
+                                            <div className="flex items-center justify-between mt-1.5">
+                                                <span className="text-[10px] text-ch-muted-soft">{timeAgo(notif.created_at)}</span>
+                                                <button onClick={(e) => handleDelete(e, notif.id)} className="p-0.5 text-ch-hairline hover:text-ch-accent-rose transition-colors"><X size={11} /></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
-                    </div>
-                    <div className="max-h-[400px] overflow-y-auto">
-                        {notifications.length === 0 ? (
-                            <div className="py-12 text-center"><BellOff size={32} className="mx-auto text-ch-hairline mb-3" /><p className="text-sm text-ch-muted">Tidak ada notifikasi</p></div>
-                        ) : (
-                            notifications.map((notif) => (
-                                <div key={notif.id} onClick={() => handleNotificationClick(notif)} className={`flex items-start gap-3.5 px-5 py-3.5 cursor-pointer transition-all hover:bg-ch-surface-soft border-b border-ch-hairline last:border-0 ${!notif.is_read ? 'bg-ch-surface-soft' : ''}`}>
-                                    <div className="w-9 h-9 bg-ch-surface-elevated rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                                        {(() => {
-                                            const IconComponent = NOTIF_ICONS[notif.icon || ''] || Bell;
-                                            return <IconComponent size={16} className="text-ch-primary" />;
-                                        })()}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <p className={`text-sm leading-tight ${!notif.is_read ? 'font-semibold text-ch-on-dark' : 'text-ch-body'}`}>{notif.title}</p>
-                                            {!notif.is_read && <span className="w-2 h-2 bg-ch-primary rounded-full shrink-0 mt-1.5" />}
-                                        </div>
-                                        <p className="text-xs text-ch-muted mt-0.5 line-clamp-2">{notif.message}</p>
-                                        <div className="flex items-center justify-between mt-1.5">
-                                            <span className="text-[10px] text-ch-muted-soft">{timeAgo(notif.created_at)}</span>
-                                            <button onClick={(e) => handleDelete(e, notif.id)} className="p-0.5 text-ch-hairline hover:text-ch-accent-rose transition-colors"><X size={11} /></button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-            )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
@@ -2475,12 +2483,12 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
         return () => clearTimeout(t);
     }, [onClose]);
     return (
-        <div className={`fixed top-5 right-5 z-[100] transition-all duration-300 ${visible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}>
-            <div className="flex items-center gap-3.5 bg-ch-surface-card border border-ch-hairline rounded-lg px-5 py-3.5 min-w-[320px]">
+        <div className={`fixed top-4 right-4 left-4 sm:left-auto sm:right-5 z-[100] transition-all duration-300 ${visible ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}>
+            <div className="flex items-center gap-3.5 bg-ch-surface-card border border-ch-hairline rounded-lg px-4 sm:px-5 py-3.5 min-w-0 sm:min-w-[320px]">
                 <div className={`w-7 h-7 ${type === "success" ? "bg-ch-accent-emerald" : "bg-ch-accent-rose"} rounded-lg flex items-center justify-center text-white text-xs font-bold shrink-0`}>
                     {type === "success" ? "✓" : "✕"}
                 </div>
-                <p className="text-sm text-ch-on-dark font-medium flex-1">{message}</p>
+                <p className="text-sm text-ch-on-dark font-medium flex-1 break-words">{message}</p>
                 <button onClick={() => { setVisible(false); setTimeout(onClose, 300); }} className="p-0.5 text-ch-hairline hover:text-ch-muted transition-colors shrink-0"><X size={14} /></button>
             </div>
         </div>
@@ -2547,39 +2555,39 @@ function PriorityRecommendationsPage({ orders, setPage, setSelectedOrder, onLoad
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             {/* AI Summary - ClickHouse yellow band */}
             {summary && (
-                <div className="ch-cta-band">
-                    <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 bg-ch-on-primary/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-                            <Sparkles size={18} className="text-ch-on-primary" />
+                <div className="ch-cta-band p-3 sm:p-4">
+                    <div className="flex items-start gap-3 sm:gap-4">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-ch-on-primary/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                            <Sparkles size={16} className="text-ch-on-primary" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-sm font-semibold text-ch-on-primary/60 uppercase tracking-wider mb-1">Ringkasan AI</h3>
-                            <p className="text-lg font-bold text-ch-on-primary leading-relaxed">{summary}</p>
+                            <h3 className="text-xs sm:text-sm font-semibold text-ch-on-primary/60 uppercase tracking-wider mb-1">Ringkasan AI</h3>
+                            <p className="text-sm sm:text-lg font-bold text-ch-on-primary leading-relaxed">{summary}</p>
                         </div>
                     </div>
                 </div>
             )}
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4">
-                <div className="ch-stat">
-                    <p className="text-xs text-ch-muted mb-1">Total Pesanan Aktif</p>
-                    <p className="text-[32px] font-bold text-ch-on-dark">{totalActive}</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+                <div className="ch-stat p-3 sm:p-4">
+                    <p className="text-[10px] sm:text-xs text-ch-muted mb-1">Total Pesanan Aktif</p>
+                    <p className="text-xl sm:text-[32px] font-bold text-ch-on-dark">{totalActive}</p>
                 </div>
-                <div className="ch-stat border-ch-accent-rose">
-                    <p className="text-xs text-ch-accent-rose mb-1">Prioritas Sangat Tinggi</p>
-                    <p className="text-[32px] font-bold text-ch-accent-rose">{recommendations.filter((r: any) => r.priority_level === 'Sangat Tinggi').length}</p>
+                <div className="ch-stat p-3 sm:p-4 border-ch-accent-rose">
+                    <p className="text-[10px] sm:text-xs text-ch-accent-rose mb-1">Prioritas Sangat Tinggi</p>
+                    <p className="text-xl sm:text-[32px] font-bold text-ch-accent-rose">{recommendations.filter((r: any) => r.priority_level === 'Sangat Tinggi').length}</p>
                 </div>
-                <div className="ch-stat">
-                    <p className="text-xs text-ch-muted mb-1">Prioritas Tinggi</p>
-                    <p className="text-[32px] font-bold text-ch-body-strong">{recommendations.filter((r: any) => r.priority_level === 'Tinggi').length}</p>
+                <div className="ch-stat p-3 sm:p-4">
+                    <p className="text-[10px] sm:text-xs text-ch-muted mb-1">Prioritas Tinggi</p>
+                    <p className="text-xl sm:text-[32px] font-bold text-ch-body-strong">{recommendations.filter((r: any) => r.priority_level === 'Tinggi').length}</p>
                 </div>
-                <div className="ch-stat">
-                    <p className="text-xs text-ch-muted mb-1">Prioritas Sedang & Rendah</p>
-                    <p className="text-[32px] font-bold text-ch-muted">{recommendations.filter((r: any) => r.priority_level === 'Sedang' || r.priority_level === 'Rendah').length}</p>
+                <div className="ch-stat p-3 sm:p-4">
+                    <p className="text-[10px] sm:text-xs text-ch-muted mb-1">Prioritas Sedang & Rendah</p>
+                    <p className="text-xl sm:text-[32px] font-bold text-ch-muted">{recommendations.filter((r: any) => r.priority_level === 'Sedang' || r.priority_level === 'Rendah').length}</p>
                 </div>
             </div>
 
@@ -2587,10 +2595,10 @@ function PriorityRecommendationsPage({ orders, setPage, setSelectedOrder, onLoad
             <ChFilterPills tabs={filterTabs} activeTab={filter} onTabChange={setFilter} />
 
             {/* Recommendation list */}
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
                 {filtered.length === 0 ? (
-                    <div className="ch-card p-12 text-center">
-                        <CheckCircle2 size={48} className="mx-auto text-ch-accent-emerald mb-3" />
+                    <div className="ch-card p-8 sm:p-12 text-center">
+                        <CheckCircle2 size={36} className="mx-auto text-ch-accent-emerald mb-2 sm:mb-3" />
                         <p className="text-sm font-semibold text-ch-on-dark mb-1">Semua pesanan dalam kondisi baik!</p>
                         <p className="text-xs text-ch-muted">Tidak ada pesanan yang memerlukan perhatian prioritas saat ini.</p>
                     </div>
@@ -2603,51 +2611,51 @@ function PriorityRecommendationsPage({ orders, setPage, setSelectedOrder, onLoad
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.05 }}
-                                className={`ch-card p-5 cursor-pointer hover:bg-ch-surface-soft transition-colors`}
+                                className={`ch-card p-3 sm:p-5 cursor-pointer hover:bg-ch-surface-soft transition-colors`}
                                 onClick={() => { setSelectedOrder(rec); onLoadDetail?.(rec.id); setPage("order-detail"); }}
                             >
-                                <div className="flex items-start gap-4">
-                                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${colors.bg} ${colors.border} border`}>
-                                        <span className={`text-lg font-bold ${colors.text}`}>#{index + 1}</span>
+                                <div className="flex items-start gap-3 sm:gap-4">
+                                    <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-lg flex items-center justify-center shrink-0 ${colors.bg} ${colors.border} border`}>
+                                        <span className={`text-sm sm:text-lg font-bold ${colors.text}`}>#{index + 1}</span>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-start justify-between gap-3 mb-2">
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className="text-base font-bold text-ch-on-dark">{rec.invoice}</h3>
-                                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${colors.bg} ${colors.text} ${colors.border} border`}>
+                                        <div className="flex items-start justify-between gap-2 sm:gap-3 mb-1.5 sm:mb-2">
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
+                                                    <h3 className="text-sm sm:text-base font-bold text-ch-on-dark truncate">{rec.invoice}</h3>
+                                                    <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${colors.bg} ${colors.text} ${colors.border} border whitespace-nowrap`}>
                                                         {rec.priority_level}
                                                     </span>
                                                 </div>
-                                                <p className="text-sm text-ch-body">{rec.customer}</p>
+                                                <p className="text-xs sm:text-sm text-ch-body truncate">{rec.customer}</p>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-sm font-semibold text-ch-on-dark">{fmt(rec.price)}</p>
-                                                <p className="text-xs text-ch-muted">{rec.item_count} item</p>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-xs sm:text-sm font-semibold text-ch-on-dark">{fmt(rec.price)}</p>
+                                                <p className="text-[10px] sm:text-xs text-ch-muted">{rec.item_count} item</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 text-xs text-ch-body">
+                                        <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-ch-body">
                                             <div className="flex items-center gap-1.5">
-                                                <Clock size={13} className="text-ch-muted" />
+                                                <Clock size={12} className="text-ch-muted" />
                                                 <span className={rec.days_until_deadline < 0 ? "text-ch-accent-rose font-semibold" : ""}>
                                                     {getDaysText(rec.days_until_deadline)}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-1.5">
-                                                <div className="ch-progress w-16">
+                                                <div className="ch-progress w-12 sm:w-16">
                                                     <div className={`ch-progress-bar ${rec.progress < 20 ? 'bg-ch-accent-rose' : rec.progress < 50 ? 'bg-ch-body-strong' : 'bg-ch-accent-emerald'}`} style={{ width: `${rec.progress}%` }} />
                                                 </div>
                                                 <span>{rec.progress}%</span>
                                             </div>
                                         </div>
                                         {rec.priority_reason && (
-                                            <div className="mt-2 flex items-start gap-1.5">
-                                                <span className="text-xs text-ch-muted">Alasan:</span>
-                                                <span className="text-xs text-ch-body">{rec.priority_reason}</span>
+                                            <div className="mt-1.5 sm:mt-2 flex items-start gap-1.5">
+                                                <span className="text-[10px] sm:text-xs text-ch-muted">Alasan:</span>
+                                                <span className="text-[10px] sm:text-xs text-ch-body">{rec.priority_reason}</span>
                                             </div>
                                         )}
                                     </div>
-                                    <div className="shrink-0">
+                                    <div className="shrink-0 hidden sm:block">
                                         <Eye size={18} className="text-ch-hairline" />
                                     </div>
                                 </div>
@@ -2670,6 +2678,7 @@ export default function App() {
     const [showWhatsApp, setShowWhatsApp] = useState(false);
     const [showReceipt, setShowReceipt] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     const [customers, setCustomers] = useState<Customer[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
@@ -2702,6 +2711,22 @@ export default function App() {
     useEffect(() => {
         const autoLogin = async () => {
             try {
+                // 1. First check if there is an active session on the server
+                //    (user stays logged in after refresh regardless of "remember me")
+                const me = await api.getMe();
+                if (me && me.id) {
+                    setUser(me);
+                    setPage("dashboard");
+                    await loadAll();
+                    return;
+                }
+            } catch (err) {
+                // Session not active on server, fall through to credential-based login
+                console.error('No active session:', err);
+            }
+
+            try {
+                // 2. Fallback: try remembered credentials
                 const creds = authStorage.getCredentials();
                 if (creds && creds.username && creds.password) {
                     const res = await loginApi(creds);
@@ -2712,11 +2737,9 @@ export default function App() {
             } catch (err) {
                 console.error('Auto-login failed:', err);
                 authStorage.clearCredentials();
-            } finally {
-                setIsInitializing(false);
             }
         };
-        autoLogin();
+        autoLogin().finally(() => setIsInitializing(false));
     }, []);
 
     const handleLogin = async (payload: { username: string; password: string }) => {
@@ -2849,8 +2872,16 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-ch-canvas flex">
+            {/* Mobile overlay */}
+            {mobileSidebarOpen && (
+                <div
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    onClick={() => setMobileSidebarOpen(false)}
+                />
+            )}
+
             {/* ClickHouse-style sidebar - Dark surface card */}
-            <aside className={`${sidebarOpen ? "w-64" : "w-16"} bg-ch-surface-card border-r border-ch-hairline transition-all duration-200 flex flex-col shrink-0 fixed h-screen overflow-y-auto z-30`}>
+            <aside className={`${sidebarOpen ? "w-64" : "w-16"} bg-ch-surface-card border-r border-ch-hairline transition-all duration-200 flex flex-col shrink-0 fixed h-screen overflow-y-auto z-50 ${mobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
                 {/* Logo */}
                 <div className="px-4 py-3 flex items-center gap-3 border-b border-ch-hairline h-16">
                     <img src="/logo.png" alt="A.Y.A Tailor" className="w-8 h-8 object-contain shrink-0" />
@@ -2870,7 +2901,7 @@ export default function App() {
                         return (
                             <button
                                 key={item.page}
-                                onClick={() => setPage(item.page)}
+                                onClick={() => { setPage(item.page); setMobileSidebarOpen(false); }}
                                 className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all rounded-lg ${isActive ? 'bg-ch-primary text-ch-on-primary' : 'text-ch-muted hover:text-ch-on-dark hover:bg-ch-surface-elevated'}`}
                                 title={item.label}
                             >
@@ -2884,7 +2915,17 @@ export default function App() {
                 {/* Logout */}
                 <div className="p-2 border-t border-ch-hairline">
                     <button
-                        onClick={() => setPage("login")}
+                        onClick={async () => {
+                            try {
+                                await logoutApi();
+                            } catch (err) {
+                                console.error('Logout failed:', err);
+                            }
+                            authStorage.clearCredentials();
+                            setUser(null);
+                            setPage("login");
+                            setMobileSidebarOpen(false);
+                        }}
                         className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-ch-muted hover:text-ch-on-dark hover:bg-ch-surface-elevated rounded-lg transition-all"
                         title="Keluar"
                     >
@@ -2903,24 +2944,36 @@ export default function App() {
             </aside>
 
             {/* Main content area */}
-            <div className={`flex-1 flex flex-col min-w-0 ${sidebarOpen ? "ml-64" : "ml-16"} transition-all duration-200`}>
+            <div className={`flex-1 flex flex-col min-w-0 ${sidebarOpen ? "lg:ml-64" : "lg:ml-16"} transition-all duration-200`}>
                 {/* ClickHouse-style header - dark bar */}
-                <header className="bg-ch-canvas border-b border-ch-hairline px-6 h-16 flex items-center justify-between sticky top-0 z-10">
-                    <h1 className="text-base font-semibold text-ch-on-dark">
-                        {page === "dashboard" && "Dashboard"}
-                        {page === "orders" && "Pesanan"}
-                        {page === "new-transaction" && "Pesanan Baru"}
-                        {page === "order-detail" && "Detail Pesanan"}
-                        {page === "customers" && "Pelanggan"}
-                        {page === "services" && "Layanan"}
-                        {page === "expenses" && "Pengeluaran"}
-                        {page === "reports" && "Laporan"}
-                        {page === "priority-recommendations" && "Prioritas AI"}
-                        {page === "settings" && "Pengaturan"}
-                    </h1>
+                <header className="bg-ch-canvas border-b border-ch-hairline px-4 sm:px-6 h-16 flex items-center justify-between sticky top-0 z-10">
+                    {/* Mobile hamburger */}
                     <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setMobileSidebarOpen(true)}
+                            className="lg:hidden p-2 text-ch-muted hover:text-ch-on-dark transition-colors"
+                            aria-label="Buka menu"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                        <h1 className="text-base font-semibold text-ch-on-dark">
+                            {page === "dashboard" && "Dashboard"}
+                            {page === "orders" && "Pesanan"}
+                            {page === "new-transaction" && "Pesanan Baru"}
+                            {page === "order-detail" && "Detail Pesanan"}
+                            {page === "customers" && "Pelanggan"}
+                            {page === "services" && "Layanan"}
+                            {page === "expenses" && "Pengeluaran"}
+                            {page === "reports" && "Laporan"}
+                            {page === "priority-recommendations" && "Prioritas AI"}
+                            {page === "settings" && "Pengaturan"}
+                        </h1>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-3">
                         <NotificationDropdown onNavigate={handleNotificationNavigate} refreshTrigger={notifRefreshKey} />
-                        <div className="flex items-center gap-2.5 pl-3 border-l border-ch-hairline">
+                        <div className="hidden sm:flex items-center gap-2.5 pl-3 border-l border-ch-hairline">
                             <div className="w-8 h-8 bg-ch-primary rounded-lg flex items-center justify-center">
                                 <User size={14} className="text-ch-on-primary" />
                             </div>
@@ -2933,18 +2986,46 @@ export default function App() {
                 </header>
 
                 {/* Page content */}
-                <main className="flex-1 p-6">
-                    {loading && <LoadingSpinner message="Memuat data..." />}
-                    {!loading && page === "dashboard" && <DashboardPage orders={orders} setPage={setPage} setSelectedOrder={setSelectedOrder} setShowWhatsApp={setShowWhatsApp} onLoadDetail={loadOrderDetail} />}
-                    {!loading && page === "customers" && <CustomersPage customers={customers} orders={orders} onAdd={() => setCustomerModal({ open: true })} onEdit={(c) => setCustomerModal({ open: true, editing: c })} onDelete={deleteCustomer} onShowDetail={(c) => { setSelectedCustomer(c); setShowCustomerDetail(true); }} />}
-                    {!loading && page === "services" && <ServicesPage services={services} onAdd={() => setServiceModal({ open: true })} onEdit={(s) => setServiceModal({ open: true, editing: s })} onDelete={deleteService} />}
-                    {!loading && page === "orders" && <OrdersPage orders={orders} setPage={setPage} setSelectedOrder={setSelectedOrder} onDelete={deleteOrder} onLoadDetail={loadOrderDetail} />}
-                    {!loading && page === "new-transaction" && <NewTransactionPage services={services} customers={customers} setPage={setPage} onCreate={createOrder} />}
-                    {!loading && page === "order-detail" && selectedOrder && <OrderDetailPage order={selectedOrder} setPage={setPage} setShowWhatsApp={setShowWhatsApp} setShowReceipt={setShowReceipt} onAdvanceStatus={advanceStatus} onPay={() => setPaymentModal(true)} />}
-                    {!loading && page === "expenses" && <ExpensesPage expenses={expenses} onAdd={() => setExpenseModal({ open: true })} onEdit={(e) => setExpenseModal({ open: true, editing: e })} onDelete={deleteExpense} />}
-                    {!loading && page === "reports" && <ReportsPage orders={orders} expenses={expenses} />}
-                    {!loading && page === "priority-recommendations" && <PriorityRecommendationsPage orders={orders} setPage={setPage} setSelectedOrder={setSelectedOrder} onLoadDetail={loadOrderDetail} />}
-                    {!loading && page === "settings" && <SettingsPage setToast={setToast} refreshNotifications={refreshNotificationList} />}
+
+                <main className="flex-1 p-4 sm:p-6">
+
+                    <AnimatePresence mode="wait">
+
+                        {loading ? (
+
+                            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
+
+                                <LoadingSpinner message="Memuat data..." />
+
+                            </motion.div>
+
+                        ) : (
+
+                            <motion.div key={page} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25, ease: "easeOut" }}>
+
+                                {page === "dashboard" && <DashboardPage orders={orders} setPage={setPage} setSelectedOrder={setSelectedOrder} setShowWhatsApp={setShowWhatsApp} onLoadDetail={loadOrderDetail} />}
+
+                                {page === "customers" && <CustomersPage customers={customers} orders={orders} onAdd={() => setCustomerModal({ open: true })} onEdit={(c) => setCustomerModal({ open: true, editing: c })} onDelete={deleteCustomer} onShowDetail={(c) => { setSelectedCustomer(c); setShowCustomerDetail(true); }} />}
+
+                                {page === "services" && <ServicesPage services={services} onAdd={() => setServiceModal({ open: true })} onEdit={(s) => setServiceModal({ open: true, editing: s })} onDelete={deleteService} />}
+
+                                {page === "orders" && <OrdersPage orders={orders} setPage={setPage} setSelectedOrder={setSelectedOrder} onDelete={deleteOrder} onLoadDetail={loadOrderDetail} />}
+
+                                {page === "new-transaction" && <NewTransactionPage services={services} customers={customers} setPage={setPage} onCreate={createOrder} />}
+
+                                {page === "order-detail" && selectedOrder && <OrderDetailPage order={selectedOrder} setPage={setPage} setShowWhatsApp={setShowWhatsApp} setShowReceipt={setShowReceipt} onAdvanceStatus={advanceStatus} onPay={() => setPaymentModal(true)} />}
+
+                                {page === "expenses" && <ExpensesPage expenses={expenses} onAdd={() => setExpenseModal({ open: true })} onEdit={(e) => setExpenseModal({ open: true, editing: e })} onDelete={deleteExpense} />}
+
+                                {page === "reports" && <ReportsPage orders={orders} expenses={expenses} />}
+
+                                {page === "priority-recommendations" && <PriorityRecommendationsPage orders={orders} setPage={setPage} setSelectedOrder={setSelectedOrder} onLoadDetail={loadOrderDetail} />}
+
+                                {page === "settings" && <SettingsPage setToast={setToast} refreshNotifications={refreshNotificationList} />}
+
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </main>
             </div>
 

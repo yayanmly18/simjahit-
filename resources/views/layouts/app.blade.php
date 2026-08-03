@@ -18,6 +18,31 @@
                 margin: 0;
             }
         }
+
+        /* Mobile menu */
+        .mobile-menu {
+            display: none;
+        }
+
+        .mobile-menu.open {
+            display: block;
+        }
+
+        @media (max-width: 767px) {
+            .desktop-nav {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .mobile-menu-btn {
+                display: none;
+            }
+        }
     </style>
     @yield('styles')
 </head>
@@ -32,7 +57,7 @@
                         <h1 class="text-xl font-bold">SimJahit</h1>
                     </div>
                     @auth
-                        <div class="hidden md:flex space-x-6">
+                        <div class="hidden md:flex space-x-6 desktop-nav">
                             <a href="/" class="hover:text-blue-200">
                                 <i class="fas fa-home"></i> Dashboard
                             </a>
@@ -43,8 +68,25 @@
                                 <i class="fas fa-clipboard-list"></i> Pesanan
                             </a>
                         </div>
+                        <button class="mobile-menu-btn text-white text-2xl focus:outline-none" onclick="toggleMobileMenu()"
+                            aria-label="Menu">
+                            <i class="fas fa-bars"></i>
+                        </button>
                     @endauth
                 </div>
+                @auth
+                    <div id="mobileMenu" class="mobile-menu pb-4 md:hidden">
+                        <a href="/" class="block py-2 px-2 hover:bg-blue-700 rounded">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                        <a href="/" class="block py-2 px-2 hover:bg-blue-700 rounded">
+                            <i class="fas fa-users"></i> Pelanggan
+                        </a>
+                        <a href="/" class="block py-2 px-2 hover:bg-blue-700 rounded">
+                            <i class="fas fa-clipboard-list"></i> Pesanan
+                        </a>
+                    </div>
+                @endauth
             </div>
         </nav>
     @endif
@@ -66,6 +108,12 @@
     </main>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('open');
+        }
+    </script>
     @yield('scripts')
 </body>
 

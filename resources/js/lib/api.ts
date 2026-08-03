@@ -95,6 +95,10 @@ export async function logoutApi() {
 
 // Customers
 export const api = {
+    // Auth
+    getMe: () => fetchApi<any>('/me'),
+
+    // Customers
     getCustomers: (search?: string) =>
         fetchApi<any[]>(`/customers${search ? `?search=${encodeURIComponent(search)}` : ''}`),
 

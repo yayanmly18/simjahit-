@@ -266,7 +266,7 @@
   gap: 8px;
   border: none;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .ch-btn-primary:hover {
@@ -301,7 +301,7 @@
   gap: 8px;
   border: 1px solid var(--ch-hairline);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .ch-btn-secondary:hover {
@@ -328,11 +328,16 @@
   gap: 8px;
   border: 1px solid var(--ch-hairline);
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .ch-btn-outline:hover {
   border-color: var(--ch-muted);
+  background-color: var(--ch-surface-soft);
+}
+
+.ch-btn-outline:active {
+  transform: scale(0.98);
 }
 
 /* Button Small */
@@ -358,11 +363,15 @@
   gap: 8px;
   border: none;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .ch-btn-danger:hover {
   opacity: 0.85;
+}
+
+.ch-btn-danger:active {
+  transform: scale(0.98);
 }
 
 /* Button Icon Circular */
@@ -378,12 +387,17 @@
   justify-content: center;
   border: 1px solid var(--ch-hairline);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
 .ch-btn-icon:hover {
   background-color: var(--ch-surface-elevated);
+  border-color: var(--ch-hairline-strong);
+}
+
+.ch-btn-icon:active {
+  transform: scale(0.92);
 }
 
 /* Card */
@@ -391,6 +405,7 @@
   background-color: var(--ch-surface-card);
   border-radius: var(--ch-radius-lg);
   border: 1px solid var(--ch-hairline);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .ch-card-body {
@@ -432,6 +447,10 @@
 
 .ch-table tr:last-child td {
   border-bottom: none;
+}
+
+.ch-table tr {
+  transition: background-color 0.15s ease;
 }
 
 .ch-table tr:hover td {
@@ -588,6 +607,11 @@
 
 .ch-filter-chip:hover {
   color: var(--ch-on-dark);
+  background-color: var(--ch-surface-soft);
+}
+
+.ch-filter-chip:active {
+  transform: scale(0.96);
 }
 
 .ch-filter-chip.active {
@@ -689,6 +713,7 @@
   border: 1px solid var(--ch-hairline);
   border-radius: var(--ch-radius-lg);
   padding: var(--ch-space-xl);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 /* Progress */
@@ -758,4 +783,12 @@
 ::selection {
   background-color: var(--ch-primary);
   color: var(--ch-on-primary);
+}
+/* Hide scrollbar for filter pills on mobile */
+.flex.overflow-x-auto::-webkit-scrollbar {
+  display: none;
+}
+.flex.overflow-x-auto {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
